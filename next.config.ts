@@ -8,7 +8,8 @@ const withPWA = require("next-pwa")({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Turbopack 설정 (dev 모드에서 빈 설정으로 webpack config 충돌 방지)
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);
