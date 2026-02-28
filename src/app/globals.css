@@ -2,26 +2,30 @@
 
 /* ===== Light Theme (Default) ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card-bg: #f5f5f5;
-  --card-border: #e5e5e5;
-  --sub-text: #6b7280;
-  --badge-bg: #f0f0f0;
-  --hover-bg: #ebebeb;
-  --notice-bg: #f9f9f9;
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card-bg: #ffffff;
+  --card-border: #e8e8ec;
+  --sub-text: #71717a;
+  --badge-bg: #f4f4f5;
+  --hover-bg: #f4f4f5;
+  --notice-bg: #f4f4f5;
+  --muted: #a1a1aa;
+  --divider: #e4e4e7;
 }
 
 /* ===== Dark Theme ===== */
 [data-theme="dark"] {
-  --background: #1a1a1a;
-  --foreground: #e5e5e5;
-  --card-bg: #2a2a2a;
-  --card-border: #3a3a3a;
-  --sub-text: #9ca3af;
-  --badge-bg: #333333;
-  --hover-bg: #353535;
-  --notice-bg: #242424;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card-bg: #18181b;
+  --card-border: #27272a;
+  --sub-text: #a1a1aa;
+  --badge-bg: #27272a;
+  --hover-bg: #27272a;
+  --notice-bg: #18181b;
+  --muted: #71717a;
+  --divider: #27272a;
 }
 
 /* ===== Tailwind Theme Tokens ===== */
@@ -34,6 +38,8 @@
   --color-badge-bg: var(--badge-bg);
   --color-hover-bg: var(--hover-bg);
   --color-notice-bg: var(--notice-bg);
+  --color-muted: var(--muted);
+  --color-divider: var(--divider);
   --font-sans: "Noto Sans KR", sans-serif;
 }
 
@@ -42,10 +48,42 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Noto Sans KR", sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Smooth transition for themed elements ===== */
-* {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+/* ===== Smooth transitions ===== */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, opacity, transform, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Selection ===== */
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sub-text);
 }

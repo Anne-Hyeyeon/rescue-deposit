@@ -11,12 +11,16 @@ export function ServiceCard({ href, emoji, title, description }: ServiceCardProp
   return (
     <Link
       href={href}
-      className="group block p-5 rounded-xl border border-card-border bg-card-bg hover:bg-hover-bg transition-colors"
+      className="group relative flex flex-col justify-between p-6 rounded-2xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm min-h-[180px]"
     >
-      <div className="text-3xl mb-3">{emoji}</div>
-      <h3 className="font-bold text-base mb-1">{title}</h3>
-      <p className="text-sm text-sub-text">{description}</p>
-      <span className="inline-block mt-3 text-sm text-sub-text group-hover:text-foreground transition-colors">
+      <div>
+        <span className="inline-block text-2xl mb-4 opacity-80 group-hover:opacity-100">
+          {emoji}
+        </span>
+        <h3 className="font-semibold text-[15px] mb-1.5 tracking-tight">{title}</h3>
+        <p className="text-[13px] text-sub-text leading-relaxed">{description}</p>
+      </div>
+      <span className="mt-4 text-[13px] text-muted group-hover:text-foreground group-hover:translate-x-0.5 inline-block">
         →
       </span>
     </Link>

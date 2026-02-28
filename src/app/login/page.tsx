@@ -20,7 +20,6 @@ function LoginContent() {
   const user = useAuthStore((s) => s.user);
   const redirectTo = searchParams.get("redirect") || "/";
 
-  // 이미 로그인 상태면 리다이렉트
   useEffect(() => {
     if (user) {
       router.replace(redirectTo);
@@ -40,10 +39,10 @@ function LoginContent() {
   };
 
   return (
-    <div className="max-w-screen-sm mx-auto px-4 py-16 flex flex-col items-center">
-      <div className="text-5xl mb-6">🔐</div>
-      <h1 className="text-2xl font-bold mb-2">로그인</h1>
-      <p className="text-sub-text text-sm mb-8">
+    <div className="max-w-2xl mx-auto px-6 pt-24 pb-20 sm:pt-32 sm:pb-28 flex flex-col items-center">
+      <span className="text-4xl mb-8">🔐</span>
+      <h1 className="text-2xl font-bold tracking-tight mb-2">로그인</h1>
+      <p className="text-sub-text text-[14px] mb-10">
         소셜 계정으로 간편하게 시작하세요
       </p>
 
@@ -52,7 +51,7 @@ function LoginContent() {
           <button
             key={provider.id}
             onClick={() => handleLogin(provider.id)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-card-border bg-card-bg hover:bg-hover-bg transition-colors cursor-pointer text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-all cursor-pointer text-[14px] font-medium"
           >
             <span>{provider.emoji}</span>
             <span>{provider.label}</span>
@@ -60,7 +59,7 @@ function LoginContent() {
         ))}
       </div>
 
-      <p className="text-xs text-sub-text mt-8 text-center leading-relaxed">
+      <p className="text-[12px] text-muted mt-10 text-center leading-relaxed">
         로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.
       </p>
     </div>
@@ -71,8 +70,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-screen-sm mx-auto px-4 py-16 flex justify-center">
-          <p className="text-sub-text">로딩 중...</p>
+        <div className="max-w-2xl mx-auto px-6 pt-24 pb-20 flex justify-center">
+          <p className="text-muted text-[14px]">로딩 중...</p>
         </div>
       }
     >

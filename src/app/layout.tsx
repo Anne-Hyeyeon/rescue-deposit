@@ -13,7 +13,7 @@ const notoSansKR = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "보증금 지킴이",
+  title: "절대지켜✋",
   description: "다가구 피해자가 직접 만든 보증금 정보 플랫폼",
 };
 

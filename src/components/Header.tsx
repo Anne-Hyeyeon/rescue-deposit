@@ -9,27 +9,28 @@ export function Header() {
   const signOut = useAuthStore((s) => s.signOut);
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-card-border">
-      <div className="max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-between">
-        {/* 로고 */}
-        <Link href="/" className="font-bold text-lg text-foreground">
-          보증금 지킴이
+    <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-divider">
+      <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
+        <Link
+          href="/"
+          className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity"
+        >
+          절대지켜✋
         </Link>
 
-        {/* 우측: 다크모드 토글 + 로그인/로그아웃 */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           {user ? (
             <button
               onClick={signOut}
-              className="text-sm px-3 py-1.5 rounded-md border border-card-border text-foreground hover:bg-hover-bg transition-colors cursor-pointer"
+              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-all cursor-pointer"
             >
               로그아웃
             </button>
           ) : (
             <Link
               href="/login"
-              className="text-sm px-3 py-1.5 rounded-md border border-card-border text-foreground hover:bg-hover-bg transition-colors"
+              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-all"
             >
               로그인
             </Link>
