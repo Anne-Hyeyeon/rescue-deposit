@@ -16,6 +16,7 @@
 
 /* ===== Dark Theme ===== */
 [data-theme="dark"] {
+  color-scheme: dark;
   --background: #09090b;
   --foreground: #fafafa;
   --card-bg: #18181b;
@@ -55,13 +56,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Smooth transitions ===== */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, opacity, transform, box-shadow;
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* ===== Touch targets ===== */
+button,
+a {
+  touch-action: manipulation;
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ===== Selection ===== */

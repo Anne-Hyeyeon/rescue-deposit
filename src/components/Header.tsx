@@ -22,15 +22,16 @@ export function Header() {
           <ThemeToggle />
           {user ? (
             <button
+              type="button"
               onClick={signOut}
-              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-all cursor-pointer"
+              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
             >
               로그아웃
             </button>
           ) : (
             <Link
               href="/login"
-              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-all"
+              className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
             >
               로그인
             </Link>

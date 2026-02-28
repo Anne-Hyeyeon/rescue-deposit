@@ -50,8 +50,9 @@ function LoginContent() {
         {providers.map((provider) => (
           <button
             key={provider.id}
+            type="button"
             onClick={() => handleLogin(provider.id)}
-            className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-all cursor-pointer text-[14px] font-medium"
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-[transform,box-shadow,border-color] duration-200 cursor-pointer text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
           >
             <span>{provider.emoji}</span>
             <span>{provider.label}</span>
