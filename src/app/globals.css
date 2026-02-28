@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ===== Light Theme (Default) ===== */
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card-bg: #f5f5f5;
+  --card-border: #e5e5e5;
+  --sub-text: #6b7280;
+  --badge-bg: #f0f0f0;
+  --hover-bg: #ebebeb;
+  --notice-bg: #f9f9f9;
+}
+
+/* ===== Dark Theme ===== */
+[data-theme="dark"] {
+  --background: #1a1a1a;
+  --foreground: #e5e5e5;
+  --card-bg: #2a2a2a;
+  --card-border: #3a3a3a;
+  --sub-text: #9ca3af;
+  --badge-bg: #333333;
+  --hover-bg: #353535;
+  --notice-bg: #242424;
+}
+
+/* ===== Tailwind Theme Tokens ===== */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-sub-text: var(--sub-text);
+  --color-badge-bg: var(--badge-bg);
+  --color-hover-bg: var(--hover-bg);
+  --color-notice-bg: var(--notice-bg);
+  --font-sans: "Noto Sans KR", sans-serif;
+}
+
+/* ===== Base Styles ===== */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Noto Sans KR", sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ===== Smooth transition for themed elements ===== */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
