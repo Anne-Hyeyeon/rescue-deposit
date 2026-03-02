@@ -8,7 +8,7 @@ const services = [
   },
   {
     href: "/chat",
-    title: "AI 상담",
+    title: "AI 챗봇",
     description: "경매·배당 관련 질문을 AI에게",
   },
   {
@@ -32,7 +32,7 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5">
             보증금,
             <br />
-            지킬 수 있어요.
+            다시 되찾을때까지.
           </h1>
           <p className="text-sub-text text-[15px] leading-relaxed max-w-sm mb-6">
             다가구 피해자가 직접 만든 사이트입니다.
@@ -40,7 +40,7 @@ export default function Home() {
             같은 아픔을 겪는 분들이 덜 헤매시길 바라며.
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-badge-bg border border-card-border text-[12px] text-sub-text w-fit">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+            👷‍♀️
             피해자가 직접 운영합니다
           </div>
         </div>
