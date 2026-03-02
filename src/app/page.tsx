@@ -27,14 +27,14 @@ export default function Home() {
   return (
     <div className="max-w-2xl mx-auto px-6">
       {/* 히어로 섹션 */}
-      <section className="pt-12 pb-10 sm:pt-16 sm:pb-14">
+      <section className="py-8">
         <div className="flex flex-col">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5">
             보증금,
             <br />
             지킬 수 있어요.
           </h1>
-          <p className="text-sub-text text-[15px] leading-relaxed max-w-sm mb-8">
+          <p className="text-sub-text text-[15px] leading-relaxed max-w-sm mb-6">
             다가구 피해자가 직접 만든 사이트입니다.
             <br />
             같은 아픔을 겪는 분들이 덜 헤매시길 바라며.
@@ -47,8 +47,8 @@ export default function Home() {
       </section>
 
       {/* 서비스 목록 */}
-      <section className="py-8 sm:py-10">
-        <p className="text-[11px] text-muted uppercase tracking-widest mb-6">
+      <section className="py-8">
+        <p className="text-[11px] text-muted uppercase tracking-widest mb-4">
           서비스
         </p>
         <div className="border-t border-divider">
@@ -61,7 +61,7 @@ export default function Home() {
       </section>
 
       {/* 공지 / 면책 박스 */}
-      <section className="py-8 sm:py-10">
+      <section className="py-8">
         <div className="pl-5 pr-6 py-4 border-l-2 border-muted">
           <p className="text-[13px] font-medium mb-2 text-foreground">
             알려드립니다

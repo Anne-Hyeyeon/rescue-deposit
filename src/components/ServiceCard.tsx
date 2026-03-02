@@ -11,7 +11,7 @@ export function ServiceCard({ href, index, title, description }: ServiceCardProp
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between py-5 -mx-6 px-6 hover:bg-hover-bg transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:rounded-lg"
+      className="group flex items-center justify-between py-4 -mx-6 px-6 hover:bg-hover-bg transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:rounded-lg"
     >
       <div className="flex items-baseline gap-5">
         <span className="text-[11px] text-muted tabular-nums shrink-0">
