@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <div className="max-w-2xl mx-auto px-6">
       {/* 히어로 섹션 */}
-      <section className="py-8">
+      <section className="py-14" >
         <div className="flex flex-col">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5">
             보증금,
