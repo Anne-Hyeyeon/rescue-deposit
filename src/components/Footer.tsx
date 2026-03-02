@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="border-t border-divider">
       <div className="max-w-2xl mx-auto px-6 py-12">
         <p className="text-[13px] text-sub-text">
-          절대지켜✋ · 다가구 피해자가 만든 보증금 정보 플랫폼
+        절대지켜 ✋ · 다가구 피해자가 만든 보증금 정보 플랫폼
         </p>
         <p className="text-[13px] text-muted mt-1.5">
           문의 · contact@example.com

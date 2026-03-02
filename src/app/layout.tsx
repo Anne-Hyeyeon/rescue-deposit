@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Header } from "@/components/Header";
@@ -13,8 +13,13 @@ const notoSansKR = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "절대지켜✋",
+  title: "절대지켜 ✋",
   description: "다가구 피해자가 직접 만든 보증금 정보 플랫폼",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -24,11 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
-      </head>
-      <body className={`${notoSansKR.className} antialiased min-h-screen flex flex-col`}>
+      <body
+        className={`${notoSansKR.className} antialiased min-h-screen flex flex-col`}
+        suppressHydrationWarning
+      >
         <ThemeProvider>
           <AuthProvider>
             <Header />

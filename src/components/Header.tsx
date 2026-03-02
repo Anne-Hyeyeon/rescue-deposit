@@ -40,7 +40,7 @@ export function Header() {
           href="/"
           className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity duration-200"
         >
-          절대지켜✋
+          절대지켜 ✋
         </Link>
 
         {/* 데스크탑 네비게이션 */}

@@ -3,15 +3,15 @@
 import { useTheme } from "./ThemeProvider";
 
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
 
   return (
     <button
       onClick={toggleTheme}
       className="w-9 h-9 flex items-center justify-center rounded-full text-muted hover:text-foreground hover:bg-hover-bg transition-[color,background-color] duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-      aria-label={theme === "light" ? "다크모드로 전환" : "라이트모드로 전환"}
+      aria-label={mounted ? (theme === "light" ? "다크모드로 전환" : "라이트모드로 전환") : "테마 전환"}
     >
-      {theme === "light" ? (
+      {(!mounted || theme === "light") ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="5" />
           <line x1="12" y1="1" x2="12" y2="3" />
