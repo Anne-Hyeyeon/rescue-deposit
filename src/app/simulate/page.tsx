@@ -9,7 +9,60 @@ import {
   type PropertyTaxOption,
   type PropertyType,
   type Region,
+  type ISimulationInput,
 } from "@/store/simulationStore";
+
+// ── 데모 데이터: 서울중앙지방법원 2023타경5053 ─────────────────────────────────
+// 실제 배당표 기준 입력값. 최선순위 근저당 2017.12.04 기준 서울 소액임차인 한도: 1억/3,400만
+// "나의 임차권" = 야경석 (후순위 균분 임차인, 실제 배당률 14.69%)
+
+const DEMO_2023TA5053 = {
+  salePrice:     1_784_756_000,
+  executionCost:     9_811_568,
+
+  // 나의 임차권 (야경석)
+  myDeposit:        50_000_000,
+  myMoveInDate:     "2021-06-04",
+  myConfirmedDate:  "2021-06-05",
+  myHasOccupancy:   true,
+
+  // 선순위 근저당 — 웰컴저축은행 근저당권부질권 (2017.12.04)
+  mortgagePrincipal: 784_560_000,
+  mortgageMaxClaim:  784_560_000,
+  mortgageRegDate:   "2017-12-04",
+
+  propertyType: "multi_family" as const,
+  region: "seoul" as const,
+
+  propertyTaxOption: "no" as const,
+  propertyTaxAmount: 0,
+  propertyTaxLegalDate: "",
+
+  otherTenants: [
+    // ── 최선순위 소액임차인 (deposit ≤ 1억, 3,400만 최우선변제) ──────────────
+    { id: "d-01", deposit: 34_000_000,  moveInDate: "2018-01-15", confirmedDate: "2018-02-01",  hasOccupancy: true  }, // 한국토지주택공사(임성준)
+    { id: "d-02", deposit: 34_000_000,  moveInDate: "2018-03-01", confirmedDate: "2018-03-15",  hasOccupancy: true  }, // 이혜인
+
+    // ── STEP3 날짜경합 채권자들 ─────────────────────────────────────────────
+    { id: "d-03", deposit:  50_000_000, moveInDate: "2019-11-01", confirmedDate: "2019-11-15",  hasOccupancy: true  }, // 한국토지주택공사(양현진) — 상대적 소액임차인 3,700만
+    { id: "d-04", deposit: 300_000_000, moveInDate: "2019-12-27", confirmedDate: "2019-12-28",  hasOccupancy: true  }, // 노태우 — 확정일자 2019.12.28
+    { id: "d-05", deposit: 110_000_000, moveInDate: "2019-12-10", confirmedDate: "2019-12-28",  hasOccupancy: false }, // 서울보증보험(서진아 대위) — 상대적 소액임차인 3,700만
+    { id: "d-06", deposit:  73_000_000, moveInDate: "2020-01-12", confirmedDate: "2020-01-13",  hasOccupancy: false }, // 서울보증보험(서진아 대위) — 확정일자 2020.01.13
+    { id: "d-07", deposit: 150_000_000, moveInDate: "2020-01-19", confirmedDate: "2020-01-20",  hasOccupancy: true  }, // 서정국 — 확정일자 2020.01.20
+    { id: "d-08", deposit: 160_000_000, moveInDate: "2020-08-24", confirmedDate: "2020-08-25",  hasOccupancy: true  }, // 김혜연 — 확정일자 2020.08.25
+    { id: "d-09", deposit: 100_000_000, moveInDate: "2021-01-13", confirmedDate: "2021-01-14",  hasOccupancy: true  }, // 나혜민 — 소액임차인 3,400만 + 확정일자 6,600만
+
+    // ── 후순위 균분 임차인 8명 (야경석 제외, 나머지 8명) ────────────────────
+    { id: "d-10", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 김다운
+    { id: "d-11", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 양성경
+    { id: "d-12", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 이예원
+    { id: "d-13", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 박선진
+    { id: "d-14", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 박효미
+    { id: "d-15", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 우대영
+    { id: "d-16", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 유기학
+    { id: "d-17", deposit:  50_000_000, moveInDate: "2021-06-04", confirmedDate: "2021-06-05",  hasOccupancy: true  }, // 조희수
+  ],
+} satisfies ISimulationInput;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -254,6 +307,12 @@ export default function SimulatePage() {
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const loadDemo = () => {
+    setInput(DEMO_2023TA5053);
+    setSalePriceInput(String(DEMO_2023TA5053.salePrice));
+    setErrors({});
+  };
+
   // Sync salePriceInput → store
   useEffect(() => {
     const n = Number(salePriceInput.replace(/,/g, ""));
@@ -326,6 +385,33 @@ export default function SimulatePage() {
           <br />
           입력 정보는 서버에 저장되지 않습니다.
         </p>
+
+        {/* 데모 배너 */}
+        <button
+          type="button"
+          onClick={loadDemo}
+          className="mt-4 w-full flex items-center gap-3 px-4 py-3 rounded-xl
+            bg-accent-bg border border-accent/20 hover:border-accent/50
+            transition-colors duration-150 cursor-pointer text-left group"
+        >
+          <span className="text-lg" aria-hidden="true">⚖️</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-accent">
+              실제 사례로 바로 체험하기
+            </p>
+            <p className="text-xs text-sub-text mt-0.5">
+              서울중앙지방법원 2023타경5053 · 다가구 · 17억 · 임차인 19명
+            </p>
+          </div>
+          <svg
+            width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2"
+            className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
