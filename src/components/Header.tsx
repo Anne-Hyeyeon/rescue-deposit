@@ -7,7 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
-  { href: "/calculator", label: "배당표 계산기" },
+  { href: "/simulate", label: "배당 시뮬레이터" },
   { href: "/chat", label: "AI 상담" },
   { href: "/qna", label: "Q&A" },
   { href: "/mypage", label: "마이페이지" },
