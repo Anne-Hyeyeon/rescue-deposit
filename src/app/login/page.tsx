@@ -42,7 +42,7 @@ function LoginContent() {
     <div className="max-w-2xl mx-auto px-6 pt-24 pb-20 sm:pt-32 sm:pb-28 flex flex-col items-center">
       <LockIcon size={36} className="text-foreground mb-8 opacity-80" />
       <h1 className="text-2xl font-bold tracking-tight mb-2">로그인</h1>
-      <p className="text-sub-text text-[14px] mb-10">
+      <p className="text-sub-text text-sm mb-10">
         소셜 계정으로 간편하게 시작하세요
       </p>
 
@@ -52,7 +52,7 @@ function LoginContent() {
             key={id}
             type="button"
             onClick={() => handleLogin(id)}
-            className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-[transform,box-shadow,border-color] duration-200 cursor-pointer text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-[transform,box-shadow,border-color] duration-200 cursor-pointer text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
           >
             <Icon size={18} />
             <span>{label}</span>
@@ -60,7 +60,7 @@ function LoginContent() {
         ))}
       </div>
 
-      <p className="text-[12px] text-muted mt-10 text-center leading-relaxed">
+      <p className="text-xs text-muted mt-10 text-center leading-relaxed">
         로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.
       </p>
     </div>
@@ -72,7 +72,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="max-w-2xl mx-auto px-6 pt-24 pb-20 flex justify-center">
-          <p className="text-muted text-[14px]">로딩 중...</p>
+          <p className="text-muted text-sm">로딩 중...</p>
         </div>
       }
     >

@@ -51,7 +51,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`text-[13px] px-3 py-1.5 transition-colors duration-200 ${
+              className={`text-sm px-3 py-1.5 transition-colors duration-200 ${
                 pathname === item.href
                   ? "text-foreground font-medium"
                   : "text-muted hover:text-foreground"
@@ -72,14 +72,14 @@ export function Header() {
               <button
                 type="button"
                 onClick={signOut}
-                className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                className="text-sm px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               >
                 로그아웃
               </button>
             ) : (
               <Link
                 href="/login"
-                className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                className="text-sm px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               >
                 로그인
               </Link>
@@ -125,7 +125,7 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-[15px] px-4 py-3 transition-colors duration-200 ${
+                  className={`text-base px-4 py-3 transition-colors duration-200 ${
                     pathname === item.href
                       ? "text-foreground font-medium"
                       : "text-sub-text hover:text-foreground"
@@ -146,14 +146,14 @@ export function Header() {
                     signOut();
                     setMobileOpen(false);
                   }}
-                  className="text-[15px] px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200 text-left cursor-pointer"
+                  className="text-base px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200 text-left cursor-pointer"
                 >
                   로그아웃
                 </button>
               ) : (
                 <Link
                   href="/login"
-                  className="text-[15px] px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200"
+                  className="text-base px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200"
                 >
                   로그인
                 </Link>
