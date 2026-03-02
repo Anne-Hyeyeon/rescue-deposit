@@ -5,14 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, Suspense } from "react";
 import type { Provider as SupabaseProvider } from "@supabase/supabase-js";
-import { GoogleIcon, KakaoIcon, NaverIcon, LockIcon } from "@/components/icons";
+import { GoogleIcon, LockIcon } from "@/components/icons";
 
-type Provider = "google" | "kakao" | "naver";
+type Provider = "google";
 
 const providers: { id: Provider; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "google", label: "Google로 시작하기", Icon: GoogleIcon },
-  { id: "kakao", label: "카카오로 시작하기", Icon: KakaoIcon },
-  { id: "naver", label: "네이버로 시작하기", Icon: NaverIcon },
 ];
 
 function LoginContent() {
@@ -35,6 +33,7 @@ function LoginContent() {
       provider: provider as SupabaseProvider,
       options: {
         redirectTo: callbackUrl,
+        scopes: undefined,
       },
     });
   };
