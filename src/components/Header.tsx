@@ -18,11 +18,13 @@ export function Header() {
   const signOut = useAuthStore((s) => s.signOut);
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  // 라우트 변경 시 모바일 메뉴 닫기
-  useEffect(() => {
+  // 라우트 변경 시 모바일 메뉴 닫기 (렌더 중 상태 조정)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   // 모바일 메뉴 열릴 때 body 스크롤 잠금
   useEffect(() => {
