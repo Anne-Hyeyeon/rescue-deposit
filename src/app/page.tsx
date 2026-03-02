@@ -23,11 +23,11 @@ const services = [
   },
 ];
 
-export default function Home() {
+const Home = () => {
   return (
     <div className="max-w-2xl mx-auto px-6">
       {/* 히어로 섹션 */}
-      <section className="py-14" >
+      <section className="py-14">
         <div className="flex flex-col">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5">
             보증금,
@@ -40,7 +40,19 @@ export default function Home() {
             같은 아픔을 겪는 분들이 덜 헤매시길 바라며.
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-badge-bg border border-card-border text-xs text-sub-text w-fit">
-            👷‍♀️
+            <svg
+              className="w-3.5 h-3.5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
             피해자가 직접 운영합니다
           </div>
         </div>
@@ -48,7 +60,7 @@ export default function Home() {
 
       {/* 서비스 목록 */}
       <section className="py-8">
-        <p className="text-xs text-muted uppercase tracking-widest mb-4">
+        <p className="text-xs text-sub-text uppercase tracking-widest mb-4">
           서비스
         </p>
         <div className="border-t border-divider">
@@ -76,3 +88,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;
