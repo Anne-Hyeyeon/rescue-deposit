@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, Suspense } from "react";
 import type { Provider as SupabaseProvider } from "@supabase/supabase-js";
+import { GoogleIcon, KakaoIcon, NaverIcon, LockIcon } from "@/components/icons";
 
 type Provider = "google" | "kakao" | "naver";
 
-const providers: { id: Provider; label: string; emoji: string }[] = [
-  { id: "google", label: "Google로 시작하기", emoji: "🔵" },
-  { id: "kakao", label: "카카오로 시작하기", emoji: "💛" },
-  { id: "naver", label: "네이버로 시작하기", emoji: "💚" },
+const providers: { id: Provider; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { id: "google", label: "Google로 시작하기", Icon: GoogleIcon },
+  { id: "kakao", label: "카카오로 시작하기", Icon: KakaoIcon },
+  { id: "naver", label: "네이버로 시작하기", Icon: NaverIcon },
 ];
 
 function LoginContent() {
@@ -40,22 +41,22 @@ function LoginContent() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 pt-24 pb-20 sm:pt-32 sm:pb-28 flex flex-col items-center">
-      <span className="text-4xl mb-8">🔐</span>
+      <LockIcon size={36} className="text-foreground mb-8 opacity-80" />
       <h1 className="text-2xl font-bold tracking-tight mb-2">로그인</h1>
       <p className="text-sub-text text-[14px] mb-10">
         소셜 계정으로 간편하게 시작하세요
       </p>
 
       <div className="w-full max-w-xs flex flex-col gap-3">
-        {providers.map((provider) => (
+        {providers.map(({ id, label, Icon }) => (
           <button
-            key={provider.id}
+            key={id}
             type="button"
-            onClick={() => handleLogin(provider.id)}
+            onClick={() => handleLogin(id)}
             className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl border border-card-border bg-card-bg hover:border-muted hover:-translate-y-0.5 hover:shadow-sm transition-[transform,box-shadow,border-color] duration-200 cursor-pointer text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
           >
-            <span>{provider.emoji}</span>
-            <span>{provider.label}</span>
+            <Icon size={18} />
+            <span>{label}</span>
           </button>
         ))}
       </div>
