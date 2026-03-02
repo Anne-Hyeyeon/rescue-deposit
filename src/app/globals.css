@@ -9,9 +9,10 @@
   --sub-text: #71717a;
   --badge-bg: #f4f4f5;
   --hover-bg: #f4f4f5;
-  --notice-bg: #f4f4f5;
   --muted: #a1a1aa;
   --divider: #e4e4e7;
+  --accent: #4d7c6f;
+  --accent-bg: #f0fdf4;
 }
 
 /* ===== Dark Theme ===== */
@@ -24,8 +25,9 @@
   --sub-text: #a1a1aa;
   --badge-bg: #27272a;
   --hover-bg: #27272a;
-  --notice-bg: #18181b;
   --muted: #71717a;
+  --accent: #86efac;
+  --accent-bg: #052e16;
   --divider: #27272a;
 }
 
@@ -38,7 +40,8 @@
   --color-sub-text: var(--sub-text);
   --color-badge-bg: var(--badge-bg);
   --color-hover-bg: var(--hover-bg);
-  --color-notice-bg: var(--notice-bg);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
   --color-muted: var(--muted);
   --color-divider: var(--divider);
   --font-sans: "Noto Sans KR", sans-serif;
