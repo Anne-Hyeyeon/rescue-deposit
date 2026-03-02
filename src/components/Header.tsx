@@ -34,6 +34,16 @@ export function Header() {
     };
   }, [mobileOpen]);
 
+  // Escape 키로 모바일 메뉴 닫기
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen]);
+
   return (
     <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-divider">
       <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -42,7 +52,7 @@ export function Header() {
           href="/"
           className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity duration-200"
         >
-          절대지켜 ✋
+          절대지켜
         </Link>
 
         {/* 데스크탑 네비게이션 */}
@@ -51,10 +61,11 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`text-[13px] px-3 py-1.5 transition-colors duration-200 ${
+              aria-current={pathname === item.href ? "page" : undefined}
+              className={`text-sm px-3 py-1.5 transition-colors duration-200 ${
                 pathname === item.href
                   ? "text-foreground font-medium"
-                  : "text-muted hover:text-foreground"
+                  : "text-sub-text hover:text-foreground"
               }`}
             >
               {item.label}
@@ -72,14 +83,14 @@ export function Header() {
               <button
                 type="button"
                 onClick={signOut}
-                className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                className="text-sm px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               >
                 로그아웃
               </button>
             ) : (
               <Link
                 href="/login"
-                className="text-[13px] px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                className="text-sm px-4 py-2 rounded-full border border-card-border text-sub-text hover:text-foreground hover:border-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               >
                 로그인
               </Link>
@@ -113,9 +124,12 @@ export function Header() {
       {mobileOpen && (
         <div className="sm:hidden fixed inset-0 top-16 z-40">
           {/* 배경 딤 */}
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+          <button
+            type="button"
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm cursor-default"
             onClick={() => setMobileOpen(false)}
+            aria-label="메뉴 닫기"
+            tabIndex={-1}
           />
 
           {/* 메뉴 패널 */}
@@ -125,7 +139,8 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-[15px] px-4 py-3 transition-colors duration-200 ${
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  className={`text-base px-4 py-3 transition-colors duration-200 ${
                     pathname === item.href
                       ? "text-foreground font-medium"
                       : "text-sub-text hover:text-foreground"
@@ -146,14 +161,14 @@ export function Header() {
                     signOut();
                     setMobileOpen(false);
                   }}
-                  className="text-[15px] px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200 text-left cursor-pointer"
+                  className="text-base px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200 text-left cursor-pointer"
                 >
                   로그아웃
                 </button>
               ) : (
                 <Link
                   href="/login"
-                  className="text-[15px] px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200"
+                  className="text-base px-4 py-3 text-sub-text hover:text-foreground transition-colors duration-200"
                 >
                   로그인
                 </Link>

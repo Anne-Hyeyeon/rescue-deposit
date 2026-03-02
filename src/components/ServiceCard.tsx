@@ -1,27 +1,27 @@
 import Link from "next/link";
 
-interface ServiceCardProps {
+interface IServiceCardProps {
   href: string;
   index: number;
   title: string;
   description: string;
 }
 
-export function ServiceCard({ href, index, title, description }: ServiceCardProps) {
+export function ServiceCard({ href, index, title, description }: IServiceCardProps) {
   return (
     <Link
       href={href}
       className="group flex items-center justify-between py-4 -mx-6 px-6 hover:bg-hover-bg transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:rounded-lg"
     >
       <div className="flex items-baseline gap-5">
-        <span className="text-[11px] text-muted tabular-nums shrink-0">
+        <span className="text-sm text-sub-text tabular-nums shrink-0">
           {String(index).padStart(2, "0")}
         </span>
         <div>
-          <h3 className="font-semibold text-[16px] tracking-tight mb-0.5">
+          <h3 className="font-semibold text-base tracking-tight mb-0.5">
             {title}
           </h3>
-          <p className="text-[13px] text-sub-text">{description}</p>
+          <p className="text-sm text-sub-text">{description}</p>
         </div>
       </div>
       <svg

@@ -9,10 +9,12 @@
   --sub-text: #71717a;
   --badge-bg: #f4f4f5;
   --hover-bg: #f4f4f5;
-  --muted: #a1a1aa;
+  --muted: #888888;
   --divider: #e4e4e7;
   --accent: #4d7c6f;
   --accent-bg: #f0fdf4;
+  --error: #c0392b;
+  --error-bg: #fef2f2;
 }
 
 /* ===== Dark Theme ===== */
@@ -29,6 +31,8 @@
   --accent: #86efac;
   --accent-bg: #052e16;
   --divider: #27272a;
+  --error: #f87171;
+  --error-bg: #450a0a;
 }
 
 /* ===== Tailwind Theme Tokens ===== */
@@ -44,6 +48,8 @@
   --color-accent-bg: var(--accent-bg);
   --color-muted: var(--muted);
   --color-divider: var(--divider);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
   --font-sans: "Noto Sans KR", sans-serif;
 }
 

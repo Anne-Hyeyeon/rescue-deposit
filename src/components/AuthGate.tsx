@@ -33,7 +33,7 @@ export function AuthGate({ children, level = "login" }: AuthGateProps) {
         action={
           <Link
             href={`/login?redirect=${encodeURIComponent(pathname)}`}
-            className="inline-flex items-center px-5 py-2.5 rounded-full border border-card-border text-[13px] text-sub-text hover:text-foreground hover:border-foreground/40 transition-colors"
+            className="inline-flex items-center px-5 py-2.5 rounded-full border border-card-border text-sm text-sub-text hover:text-foreground hover:border-foreground/40 transition-colors"
           >
             로그인하기
           </Link>
@@ -66,8 +66,8 @@ function GateBlock({
       <div className="w-14 h-14 rounded-full bg-badge-bg flex items-center justify-center mb-2">
         {icon}
       </div>
-      <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
-      <p className="text-sub-text text-[14px]">{description}</p>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="text-sub-text text-sm">{description}</p>
       {action}
     </div>
   );
