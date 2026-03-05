@@ -21,10 +21,9 @@ const DEMO_2023TA5053 = {
   executionCost:     9_811_568,
 
   // 나의 임차권: 김○○
-  myDeposit:        180_000_000,
-  myMoveInDate:     "2020-08-23",
-  myConfirmedDate:  "2020-08-23",
-  myHasOccupancy:   true,
+  myDeposit:            180_000_000,
+  myOpposabilityDate:   "2020-08-24", // 대항력 발생일
+  myHasOccupancy:       true,
 
   // 선순위 근저당 — 웰컴저축은행 근저당권부질권
   mortgagePrincipal: 784_560_000,
@@ -38,24 +37,24 @@ const DEMO_2023TA5053 = {
   propertyTaxAmount: 0,
   propertyTaxLegalDate: "",
 
-  // 다른 세입자 16명 (전입일 순)
+  // 다른 세입자 16명 (대항력 발생일 순)
   otherTenants: [
-    { id: "t-01", deposit: 168_000_000, moveInDate: "2019-12-01", confirmedDate: "2019-12-01", hasOccupancy: true  }, // 서○○
-    { id: "t-02", deposit: 315_000_000, moveInDate: "2019-12-26", confirmedDate: "2019-12-26", hasOccupancy: true  }, // 노○○
-    { id: "t-03", deposit: 115_500_000, moveInDate: "2020-01-06", confirmedDate: "2020-01-06", hasOccupancy: true  }, // LH(서진아)
-    { id: "t-04", deposit: 100_000_000, moveInDate: "2021-01-12", confirmedDate: "2021-01-12", hasOccupancy: true  }, // 나○○
-    { id: "t-05", deposit: 150_000_000, moveInDate: "2021-06-03", confirmedDate: "2021-06-03", hasOccupancy: true  }, // 김○○
-    { id: "t-06", deposit: 120_000_000, moveInDate: "2021-08-12", confirmedDate: "2021-08-12", hasOccupancy: true  }, // LH(양성경)
-    { id: "t-07", deposit: 120_000_000, moveInDate: "2021-08-22", confirmedDate: "2021-08-22", hasOccupancy: true  }, // LH(이예원)
-    { id: "t-08", deposit: 120_000_000, moveInDate: "2021-12-28", confirmedDate: "2021-12-28", hasOccupancy: true  }, // 박○○
-    { id: "t-09", deposit: 120_000_000, moveInDate: "2021-12-30", confirmedDate: "2021-12-30", hasOccupancy: true  }, // 박○○
-    { id: "t-10", deposit: 100_000_000, moveInDate: "2022-02-07", confirmedDate: "2022-02-07", hasOccupancy: true  }, // LH(임성준)
-    { id: "t-11", deposit: 130_000_000, moveInDate: "2022-02-15", confirmedDate: "2022-02-15", hasOccupancy: true  }, // LH(우대영)
-    { id: "t-12", deposit: 120_000_000, moveInDate: "2022-04-20", confirmedDate: "2022-04-20", hasOccupancy: true  }, // LH(유기학)
-    { id: "t-13", deposit: 110_000_000, moveInDate: "2022-05-24", confirmedDate: "2022-05-24", hasOccupancy: true  }, // LH(양현진)
-    { id: "t-14", deposit: 120_000_000, moveInDate: "2022-06-30", confirmedDate: "2022-06-30", hasOccupancy: true  }, // LH(조희수)
-    { id: "t-15", deposit:  95_000_000, moveInDate: "2022-09-07", confirmedDate: "2022-09-07", hasOccupancy: true  }, // 이○○
-    { id: "t-16", deposit: 130_000_000, moveInDate: "2022-09-25", confirmedDate: "2022-09-25", hasOccupancy: true  }, // 야○○
+    { id: "t-01", deposit: 168_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true  }, // 서○○
+    { id: "t-02", deposit: 315_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true  }, // 노○○
+    { id: "t-03", deposit: 115_500_000, opposabilityDate: "2020-01-07", hasOccupancy: true  }, // LH(서진아)
+    { id: "t-04", deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true  }, // 나○○
+    { id: "t-05", deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true  }, // 김○○
+    { id: "t-06", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true  }, // LH(양성경)
+    { id: "t-07", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true  }, // LH(이예원)
+    { id: "t-08", deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true  }, // 박○○
+    { id: "t-09", deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true  }, // 박○○
+    { id: "t-10", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true  }, // LH(임성준)
+    { id: "t-11", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true  }, // LH(우대영)
+    { id: "t-12", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true  }, // LH(유기학)
+    { id: "t-13", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true  }, // LH(양현진)
+    { id: "t-14", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true  }, // LH(조희수)
+    { id: "t-15", deposit:  95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true  }, // 이○○
+    { id: "t-16", deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true  }, // 야○○
   ],
 } satisfies ISimulationInput;
 
@@ -250,11 +249,11 @@ const OtherTenantRow = ({
         />
       </div>
       <div>
-        <FieldLabel htmlFor={`ot-movein-${tenant.id}`}>전입신고일</FieldLabel>
+        <FieldLabel htmlFor={`ot-opposability-${tenant.id}`}>대항력 발생일</FieldLabel>
         <DateInput
-          id={`ot-movein-${tenant.id}`}
-          value={tenant.moveInDate}
-          onChange={(e) => onChange({ ...tenant, moveInDate: e.target.value, confirmedDate: e.target.value })}
+          id={`ot-opposability-${tenant.id}`}
+          value={tenant.opposabilityDate}
+          onChange={(e) => onChange({ ...tenant, opposabilityDate: e.target.value })}
         />
       </div>
     </div>
@@ -346,8 +345,7 @@ export default function SimulatePage() {
         {
           id: crypto.randomUUID(),
           deposit: 0,
-          moveInDate: "",
-          confirmedDate: "",
+          opposabilityDate: "",
           hasOccupancy: true,
         },
       ],
@@ -366,7 +364,7 @@ export default function SimulatePage() {
     const errs: Record<string, string> = {};
     if (!input.salePrice || input.salePrice <= 0) errs.salePrice = "매각대금을 입력해주세요";
     if (!input.myDeposit || input.myDeposit <= 0) errs.myDeposit = "보증금을 입력해주세요";
-    if (!input.myMoveInDate) errs.myMoveInDate = "전입신고일을 입력해주세요";
+    if (!input.myOpposabilityDate) errs.myOpposabilityDate = "대항력 발생일을 입력해주세요";
     if (!input.mortgageRegDate) errs.mortgageRegDate = "근저당 설정일을 입력해주세요";
     if (!input.mortgageMaxClaim || input.mortgageMaxClaim <= 0) errs.mortgageMaxClaim = "채권최고액을 입력해주세요";
     setErrors(errs);
@@ -491,17 +489,17 @@ export default function SimulatePage() {
 
               <div>
                 <FieldLabel
-                  htmlFor="myMoveInDate"
-                  info="전입신고일과 확정일자 중 늦은 날짜가 대항력 발생일입니다."
+                  htmlFor="myOpposabilityDate"
+                  info="전입신고일의 다음날이 대항력 발생일입니다. 확정일자가 더 늦으면 확정일자가 기준일이 됩니다."
                 >
                   대항력 발생일
                 </FieldLabel>
                 <DateInput
-                  id="myMoveInDate"
-                  value={input.myMoveInDate}
-                  onChange={(e) => setInput({ myMoveInDate: e.target.value, myConfirmedDate: e.target.value })}
+                  id="myOpposabilityDate"
+                  value={input.myOpposabilityDate}
+                  onChange={(e) => setInput({ myOpposabilityDate: e.target.value })}
                 />
-                {errors.myMoveInDate && <p className="text-xs text-error mt-1" role="alert">{errors.myMoveInDate}</p>}
+                {errors.myOpposabilityDate && <p className="text-xs text-error mt-1" role="alert">{errors.myOpposabilityDate}</p>}
               </div>
 
               <label className="flex items-center gap-3 cursor-pointer">

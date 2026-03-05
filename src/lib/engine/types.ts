@@ -29,8 +29,7 @@ export interface ICreditor {
 
   // Dates (YYYY-MM-DD)
   registrationDate?: string;
-  moveInDate?: string;
-  confirmedDate?: string;
+  opposabilityDate?: string; // 대항력 발생일 (사용자 직접 입력)
   legalDate?: string; // 법정기일 (for taxes)
 
   // Tenant specific

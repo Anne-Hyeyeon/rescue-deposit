@@ -24,8 +24,6 @@ const pct = (part: number, total: number) =>
   total === 0 ? "0" : ((part / total) * 100).toFixed(1);
 
 // ── Build placeholder rows from input ────────────────────────────────────────
-// Until the engine is rebuilt this produces the table structure with 0s for
-// calculated columns so the UI is fully visible and testable.
 
 const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
   const rows: IDistributionRow[] = [];
@@ -42,7 +40,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     isMyTenant: false,
   });
 
-  // STEP 1: 소액임차인 (placeholder — engine will determine eligibility)
+  // STEP 1: 소액임차인
   rows.push({
     step: "STEP 1",
     category: "소액임차인 최우선변제",
@@ -85,7 +83,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     });
   }
 
-  // STEP 3: 날짜 경합 (근저당 + 확정일자 임차인)
+  // STEP 3: 날짜 경합
   if (input.mortgageMaxClaim > 0) {
     rows.push({
       step: "STEP 3",
@@ -111,7 +109,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
   });
 
   input.otherTenants
-    .filter((ot: IOtherTenant) => ot.deposit > 0 && ot.confirmedDate)
+    .filter((ot: IOtherTenant) => ot.deposit > 0 && ot.opposabilityDate)
     .forEach((ot: IOtherTenant, i: number) => {
       rows.push({
         step: "STEP 3",
@@ -171,22 +169,15 @@ const TableRow = ({
         ${isHighlight ? "bg-accent-bg" : "hover:bg-hover-bg"}
         ${gotNothing ? "opacity-50" : ""}`}
     >
-      {/* # */}
       <td className="px-3 py-3 text-center text-xs text-muted w-8">
         {index + 1}
       </td>
-
-      {/* 단계 */}
       <td className="px-3 py-3 w-24">
         <StepBadge step={row.step} />
       </td>
-
-      {/* 구분 */}
       <td className="px-3 py-3 text-xs text-sub-text whitespace-nowrap">
         {row.category}
       </td>
-
-      {/* 채권자 */}
       <td className="px-3 py-3">
         <div className="flex items-center gap-1.5">
           {isHighlight && (
@@ -200,13 +191,9 @@ const TableRow = ({
           <p className="text-[10px] text-muted mt-0.5">{row.note}</p>
         )}
       </td>
-
-      {/* 채권액 */}
       <td className="px-3 py-3 text-right text-sm text-foreground tabular-nums whitespace-nowrap">
         {isExecution ? "—" : `${fmt(row.claimAmount)}원`}
       </td>
-
-      {/* 배당액 */}
       <td className="px-3 py-3 text-right tabular-nums whitespace-nowrap">
         {hasResult ? (
           <span className={`text-sm font-semibold ${isHighlight ? "text-accent" : row.distributedAmount > 0 ? "text-foreground" : "text-muted"}`}>
@@ -216,8 +203,6 @@ const TableRow = ({
           <span className="text-xs text-muted italic">계산 전</span>
         )}
       </td>
-
-      {/* 배당 후 잔액 */}
       <td className="px-3 py-3 text-right text-sm tabular-nums whitespace-nowrap">
         {hasResult ? (
           <span className="text-sub-text">{`${fmt(row.remainingPool)}원`}</span>
@@ -288,6 +273,39 @@ const RiskPanel = ({ myAmount, myDeposit }: { myAmount: number; myDeposit: numbe
   );
 };
 
+// ── Assumptions Panel (결과 페이지용) ──────────────────────────────────────────
+
+const AssumptionsPanel = () => (
+  <div className="rounded-2xl border border-card-border bg-card-bg p-5">
+    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        className="text-yellow-500" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      이 결과의 전제 조건
+    </h3>
+    <ul className="text-xs text-sub-text space-y-1.5 leading-relaxed">
+      <li className="flex items-start gap-1.5">
+        <span className="mt-0.5 flex-shrink-0 text-yellow-500">•</span>
+        <span>배당요구를 한 세입자만 계산에 포함되었습니다.</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span className="mt-0.5 flex-shrink-0 text-yellow-500">•</span>
+        <span>대항력 발생일이 입력되면 대항력이 있는 것으로 가정했습니다. 경매개시결정 등기 전 대항요건 구비 여부는 별도로 검증하지 않았습니다.</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span className="mt-0.5 flex-shrink-0 text-yellow-500">•</span>
+        <span>증액된 보증금은 반영되지 않았습니다. 계약 갱신으로 보증금이 변동된 경우 소액임차인 판정이 달라질 수 있습니다.</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span className="mt-0.5 flex-shrink-0 text-yellow-500">•</span>
+        <span>소액임차인 기준표의 지역 구간은 근저당 설정일 시점의 법령을 기준으로 판단했습니다. 같은 도시라도 시기에 따라 구간이 달라질 수 있습니다.</span>
+      </li>
+    </ul>
+  </div>
+);
+
 // ── Action Links ──────────────────────────────────────────────────────────────
 
 const ACTION_ITEMS = [
@@ -314,7 +332,6 @@ export default function SimulateResultPage() {
   const router = useRouter();
   const { input, result } = useSimulationStore();
 
-  // Redirect if user lands here without going through the form
   const hasInput = input.myDeposit > 0 && input.mortgageRegDate;
   useEffect(() => {
     if (!hasInput) router.replace("/simulate");
@@ -347,6 +364,9 @@ export default function SimulateResultPage() {
         {/* Risk */}
         {hasResult && <RiskPanel myAmount={myAmount} myDeposit={input.myDeposit} />}
 
+        {/* Assumptions */}
+        <AssumptionsPanel />
+
         {/* Distribution Table */}
         <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-divider">
@@ -359,7 +379,6 @@ export default function SimulateResultPage() {
             </p>
           </div>
 
-          {/* Scrollable table */}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
@@ -381,7 +400,6 @@ export default function SimulateResultPage() {
             </table>
           </div>
 
-          {/* Remaining balance footer */}
           {hasResult && (
             <div className="px-5 py-3 border-t border-divider bg-badge-bg/40 flex items-center justify-between">
               <span className="text-xs text-sub-text">최종 잔여금 (소유자 반환)</span>
@@ -455,13 +473,18 @@ export default function SimulateResultPage() {
         </div>
 
         {/* Disclaimer */}
-        <p className="text-xs text-muted text-center leading-relaxed px-2">
-          이 결과는 입력하신 정보를 기반으로 한 참고용 시뮬레이션입니다.
-          실제 배당 결과는 법원의 판단에 따라 달라질 수 있으며,
-          중요한 결정을 내리기 전에 반드시 법률 전문가와 상담하시기 바랍니다.
-        </p>
+        <div className="rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 px-4 py-3">
+          <p className="text-xs text-muted text-center leading-relaxed">
+            이 결과는 입력하신 정보를 기반으로 한 <strong>참고용 시뮬레이션</strong>입니다.
+            실제 배당 결과는 법원의 판단에 따라 달라질 수 있으며,
+            중요한 결정을 내리기 전에 반드시 법률 전문가와 상담하시기 바랍니다.
+            <br />
+            <span className="text-yellow-600 dark:text-yellow-400">
+              증액보증금 반영 불가 · 배당요구 미신청자 미포함 · 대항요건 구비 시점 미검증
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
