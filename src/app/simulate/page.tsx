@@ -11,6 +11,7 @@ import {
   type Region,
   type ISimulationInput,
 } from "@/store/simulationStore";
+import { runSimulation } from "@/lib/engine/bridge";
 
 // ── 데모 데이터: 서울중앙지방법원 2023타경5053 ─────────────────────────────────
 // 엑셀(임차인_대항력_정리.xlsx) 기준. "나" = 김○○ (대항력 2020-08-24, 보증금 1.8억)
@@ -21,7 +22,7 @@ const DEMO_2023TA5053 = {
   executionCost:     9_811_568,
 
   // 나의 임차권: 김○○
-  myDeposit:            180_000_000,
+  myDeposit:            160_000_000,
   myOpposabilityDate:   "2020-08-24", // 대항력 발생일
   myHasOccupancy:       true,
 
@@ -39,9 +40,9 @@ const DEMO_2023TA5053 = {
 
   // 다른 세입자 16명 (대항력 발생일 순)
   otherTenants: [
-    { id: "t-01", deposit: 168_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true  }, // 서○○
-    { id: "t-02", deposit: 315_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true  }, // 노○○
-    { id: "t-03", deposit: 115_500_000, opposabilityDate: "2020-01-07", hasOccupancy: true  }, // LH(서진아)
+    { id: "t-01", deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true  }, // 서○○
+    { id: "t-02", deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true  }, // 노○○
+    { id: "t-03", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true  }, // LH(서진아)
     { id: "t-04", deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true  }, // 나○○
     { id: "t-05", deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true  }, // 김○○
     { id: "t-06", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true  }, // LH(양성경)
@@ -374,7 +375,8 @@ export default function SimulatePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    setResult(null);
+    const result = runSimulation(input);
+    setResult(result);
     router.push("/simulate/result");
   };
 
