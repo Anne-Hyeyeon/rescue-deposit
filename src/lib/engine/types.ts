@@ -1,13 +1,23 @@
+// All monetary amounts in KRW, dates in "YYYY-MM-DD" format
+
+// ===== Input Types =====
+
+export type Region = "seoul" | "overcrowded" | "metropolitan" | "others";
+
 export interface IAuctionCase {
-  salePrice: number;
-  executionCost: number; // default 10,000,000
-  propertyType: "multi_family" | "multi_unit";
-  region: "seoul" | "metropolitan_overcrowded" | "metropolitan" | "others";
-  baseRightDate: string; // YYYY-MM-DD (말소기준권리 설정일)
+  readonly salePrice: number;
+  readonly saleInterest: number;
+  readonly delayInterest: number;
+  readonly priorDeposit: number;
+  readonly appealDeposit: number;
+  readonly executionCost: number;
+  readonly address?: string;
+  readonly region?: Region;
+  readonly baseRightDate: string;
 }
 
 export type CreditorType =
-  | "confirmed_date_tenant"
+  | "tenant"
   | "mortgage"
   | "pledge_on_mortgage"
   | "jeonse_right"
@@ -20,57 +30,96 @@ export type CreditorType =
   | "general_creditor";
 
 export interface ICreditor {
-  id: string;
-  name: string;
-  type: CreditorType;
-  principal: number;
-  interest: number;
-  cost: number;
-
-  // Dates (YYYY-MM-DD)
-  registrationDate?: string;
-  moveInDate?: string;
-  confirmedDate?: string;
-  legalDate?: string; // 법정기일 (for taxes)
-
-  // Tenant specific
-  deposit: number;
-  hasOccupancy: boolean;
-  hasResidentReg: boolean;
-  householdGroupId?: string; // For grouping family members (가정공동생활 합산)
-
-  maxClaimAmount?: number; // 채권최고액
+  readonly id: string;
+  readonly name: string;
+  readonly type: CreditorType;
+  readonly claimAmount: number;
+  readonly registrationDate?: string;
+  readonly opposabilityDate?: string;
+  readonly legalDate?: string;
+  readonly seizureDate?: string;
+  readonly deposit?: number;
+  readonly isSubrogation?: boolean;
+  readonly originalTenantId?: string;
+  readonly maxClaimAmount?: number;
 }
 
-// Engine internal model — enriched at runtime
-export interface IEffectiveCreditor extends ICreditor {
-  claimAmount: number; // principal + interest + cost
-  remainingAmount: number;
-  totalDistributed: number;
-  effectivePriorityDate: number; // timestamp for sorting (ms)
-  opposabilityDatetime?: number; // 대항력 발생 타임스탬프 (전입일 익일 0시)
-  /** 2023 당해세 역전: 이 채권자를 STEP 2가 아닌 STEP 3에서 처리 */
-  _deferredToStep3?: boolean;
+// ===== Internal Types =====
+
+export interface IStepResult {
+  readonly rows: ReadonlyArray<IDistributionRow>;
+  readonly remaining: number;
 }
 
-export type DistributionPolicy = "proRata" | "equalSplit";
-
-export interface IDistributionLog {
-  creditorId: string;
-  amount: number;
-  reason: string;
-  policy: DistributionPolicy;
+export interface ITenantWithDates {
+  readonly creditor: ICreditor;
+  readonly opposabilityDate: string;
+  readonly priorityDate: string | null;
 }
 
-export interface IEngineResult {
-  distributions: Record<string, number>; // creditorId -> total amount received
-  remainingBalance: number;
-  logs: IDistributionLog[];
+export interface IAbsoluteSmallTenant {
+  readonly tenant: ITenantWithDates;
+  readonly priorityAmount: number;
 }
 
-export interface ISmallTenantLimit {
-  startDate: string; // YYYY-MM-DD inclusive
-  endDate: string | null; // YYYY-MM-DD inclusive, null = present
-  maxDeposit: number; // 소액임차인 해당 보증금 상한
-  priorityAmount: number; // 최우선변제 금액
+export interface IRelativeSmallTenantInfo {
+  readonly creditorId: string;
+  readonly creditorName: string;
+  readonly deposit: number;
+  readonly priorityAmount: number;
+  readonly periodStart: string;
+}
+
+export interface IRelativeSmallResult {
+  readonly relativeSmalls: ReadonlyArray<IRelativeSmallTenantInfo>;
+  readonly relativeSmallIds: ReadonlySet<string>;
+  readonly relativeSmallAmounts: ReadonlyMap<string, number>;
+}
+
+export interface IQueueItem {
+  readonly creditorId: string;
+  readonly creditorName: string;
+  readonly type: CreditorType | "relative_small";
+  readonly claimAmount: number;
+  readonly sortDate: string;
+  readonly sortSubOrder: number;
+  readonly reason: string;
+}
+
+export type QueueSegment =
+  | { readonly kind: "relative_small_group"; readonly items: ReadonlyArray<IQueueItem> }
+  | { readonly kind: "single"; readonly item: IQueueItem };
+
+// ===== Output Types =====
+
+export interface IDistributionRow {
+  readonly order: number;
+  readonly creditorId: string;
+  readonly creditorName: string;
+  readonly claimAmount: number;
+  readonly step: string;
+  readonly rank: number;
+  readonly reason: string;
+  readonly distributionAmount: number;
+  readonly remainingAfter: number;
+  readonly distributionRate: number;
+}
+
+export interface IDistributionResult {
+  readonly totalFund: number;
+  readonly executionCost: number;
+  readonly distributableFund: number;
+  readonly halfOfPropertyValue: number;
+  readonly rows: ReadonlyArray<IDistributionRow>;
+  readonly remainder: number;
+}
+
+export interface ISmallTenantThreshold {
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly decree: string;
+  readonly seoul: { readonly depositMax: number; readonly priorityMax: number };
+  readonly overcrowded: { readonly depositMax: number; readonly priorityMax: number };
+  readonly metropolitan: { readonly depositMax: number; readonly priorityMax: number };
+  readonly others: { readonly depositMax: number; readonly priorityMax: number };
 }
