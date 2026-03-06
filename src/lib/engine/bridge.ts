@@ -73,10 +73,10 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   // Other tenants
   input.otherTenants
     .filter((ot) => ot.deposit > 0 && ot.opposabilityDate)
-    .forEach((ot) => {
+    .forEach((ot, i) => {
       creditors.push({
         id: ot.id,
-        name: `다른 세입자`,
+        name: `다른 세입자 ${i + 1}`,
         type: "tenant",
         claimAmount: ot.deposit,
         opposabilityDate: ot.opposabilityDate,
@@ -97,6 +97,13 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
 
   // Run engine
   const engineResult = calculateDistribution(auctionCase, creditors);
+
+  // Build date lookup: creditorId → key date
+  const dateLookup = new Map<string, string>();
+  creditors.forEach((c) => {
+    const date = c.opposabilityDate ?? c.registrationDate ?? c.legalDate;
+    if (date) dateLookup.set(c.id, date);
+  });
 
   // Convert engine rows to store rows
   const executionRow: IStoreRow = {
@@ -129,6 +136,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
       remainingPool: r.remainingAfter,
       isMyTenant: r.creditorId === "my_tenant",
       note: r.reason,
+      keyDate: dateLookup.get(r.creditorId),
     })),
   ];
 

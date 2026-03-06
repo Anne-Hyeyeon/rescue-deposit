@@ -41,7 +41,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     isMyTenant: false,
   });
 
-  // STEP 1: 소액임차인
+  // 소액임차인
   rows.push({
     step: "STEP 1",
     category: "소액임차인 최우선변제",
@@ -51,6 +51,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     distributedAmount: 0,
     remainingPool: 0,
     isMyTenant: true,
+    keyDate: input.myOpposabilityDate || undefined,
     note: "소액임차인 해당 여부는 엔진 계산 필요",
   });
 
@@ -66,11 +67,12 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
         distributedAmount: 0,
         remainingPool: 0,
         isMyTenant: false,
+        keyDate: ot.opposabilityDate || undefined,
         note: "소액임차인 해당 여부는 엔진 계산 필요",
       });
     });
 
-  // STEP 2: 당해세
+  // 당해세
   if (input.propertyTaxOption === "yes" && input.propertyTaxAmount > 0) {
     rows.push({
       step: "STEP 2",
@@ -81,10 +83,11 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
       distributedAmount: 0,
       remainingPool: 0,
       isMyTenant: false,
+      keyDate: input.propertyTaxLegalDate || undefined,
     });
   }
 
-  // STEP 3: 날짜 경합
+  // 날짜 경합
   if (input.mortgageMaxClaim > 0) {
     rows.push({
       step: "STEP 3",
@@ -95,6 +98,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
       distributedAmount: 0,
       remainingPool: 0,
       isMyTenant: false,
+      keyDate: input.mortgageRegDate || undefined,
     });
   }
 
@@ -107,6 +111,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     distributedAmount: 0,
     remainingPool: 0,
     isMyTenant: true,
+    keyDate: input.myOpposabilityDate || undefined,
   });
 
   input.otherTenants
@@ -121,31 +126,37 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
         distributedAmount: 0,
         remainingPool: 0,
         isMyTenant: false,
+        keyDate: ot.opposabilityDate || undefined,
       });
     });
 
   return rows;
 };
 
-// ── Step badge ────────────────────────────────────────────────────────────────
+// ── Category badge ────────────────────────────────────────────────────────────
 
-const STEP_COLORS: Record<string, string> = {
-  "집행비용": "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-  "STEP 1":  "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300",
-  "STEP 2":  "bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
-  "STEP 3":  "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  "STEP 4":  "bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-300",
-  "STEP 5":  "bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-300",
-  "STEP 6":  "bg-red-50 text-red-500 dark:bg-red-950 dark:text-red-300",
-  "STEP 7":  "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500",
+const CATEGORY_COLORS: Record<string, string> = {
+  "집행비용":           "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
+  "소액임차인 최우선변제": "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300",
+  "당해세":            "bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
+  "담보물권":           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  "확정일자 임차인":     "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  "상대적 소액임차인":    "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  "임금채권":           "bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-300",
+  "조세채권":           "bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-300",
+  "공과금":            "bg-red-50 text-red-500 dark:bg-red-950 dark:text-red-300",
+  "일반채권":           "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500",
+  "배당 불가":          "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500",
+  // Placeholder categories
+  "근저당권":           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
 };
 
-const StepBadge = ({ step }: { step: string }) => (
+const CategoryBadge = ({ category }: { category: string }) => (
   <span
     className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap
-      ${STEP_COLORS[step] ?? "bg-badge-bg text-muted"}`}
+      ${CATEGORY_COLORS[category] ?? "bg-badge-bg text-muted"}`}
   >
-    {step}
+    {category}
   </span>
 );
 
@@ -173,11 +184,8 @@ const TableRow = ({
       <td className="px-3 py-3 text-center text-xs text-muted w-8">
         {index + 1}
       </td>
-      <td className="px-3 py-3 w-24">
-        <StepBadge step={row.step} />
-      </td>
-      <td className="px-3 py-3 text-xs text-sub-text whitespace-nowrap">
-        {row.category}
+      <td className="px-3 py-3">
+        <CategoryBadge category={row.category} />
       </td>
       <td className="px-3 py-3">
         <div className="flex items-center gap-1.5">
@@ -191,6 +199,9 @@ const TableRow = ({
         {row.note && (
           <p className="text-[10px] text-muted mt-0.5">{row.note}</p>
         )}
+      </td>
+      <td className="px-3 py-3 text-center text-xs text-sub-text tabular-nums whitespace-nowrap">
+        {row.keyDate ?? "—"}
       </td>
       <td className="px-3 py-3 text-right text-sm text-foreground tabular-nums whitespace-nowrap">
         {isExecution ? "—" : `${fmt(row.claimAmount)}원`}
@@ -508,9 +519,9 @@ export default function SimulateResultPage() {
               <thead>
                 <tr className="border-b border-divider bg-badge-bg/60">
                   <th className="px-3 py-2.5 text-center text-xs font-medium text-muted w-8">#</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-muted w-24">단계</th>
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-muted">구분</th>
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-muted">채권자</th>
+                  <th className="px-3 py-2.5 text-center text-xs font-medium text-muted">일자</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">채권액</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">배당액</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">배당 후 잔액</th>
@@ -543,22 +554,13 @@ export default function SimulateResultPage() {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2 px-1">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 px-1">
           {[
-            ["집행비용", STEP_COLORS["집행비용"]],
-            ["STEP 1 소액임차인", STEP_COLORS["STEP 1"]],
-            ["STEP 2 당해세", STEP_COLORS["STEP 2"]],
-            ["STEP 3 날짜경합", STEP_COLORS["STEP 3"]],
-            ["STEP 4 임금", STEP_COLORS["STEP 4"]],
-            ["STEP 5 일반조세", STEP_COLORS["STEP 5"]],
-            ["STEP 6 공과금", STEP_COLORS["STEP 6"]],
-            ["STEP 7 일반채권", STEP_COLORS["STEP 7"]],
-          ].map(([label, cls]) => (
-            <div key={label} className="flex items-center gap-1.5">
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${cls}`}>
-                {(label as string).split(" ")[0]}
-              </span>
-              <span className="text-xs text-muted">{(label as string).split(" ").slice(1).join(" ")}</span>
+            "집행비용", "소액임차인 최우선변제", "당해세", "담보물권",
+            "확정일자 임차인", "임금채권", "조세채권", "공과금", "일반채권",
+          ].map((cat) => (
+            <div key={cat} className="flex items-center gap-1.5">
+              <CategoryBadge category={cat} />
             </div>
           ))}
           <div className="flex items-center gap-1.5">
