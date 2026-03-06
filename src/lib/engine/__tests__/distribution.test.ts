@@ -211,9 +211,9 @@ describe("Test 4: Multiple small tenants — 1/2 limit exceeded", () => {
     const step1Total = step1Rows.reduce((sum, r) => sum + r.distributionAmount, 0);
     expect(step1Total).toBe(97_000_000);
 
-    expect(step1Rows[0].distributionAmount).toBe(32_333_333);
+    expect(step1Rows[0].distributionAmount).toBe(32_333_334);
     expect(step1Rows[1].distributionAmount).toBe(32_333_333);
-    expect(step1Rows[2].distributionAmount).toBe(32_333_334);
+    expect(step1Rows[2].distributionAmount).toBe(32_333_333);
   });
 });
 
@@ -539,15 +539,16 @@ describe("Test 10: Real case — 2023타경5053", () => {
     expect(step1Total).toBe(102_000_000);
   });
 
-  it("should identify 12 relative small tenants (2 from 2018 period, 10 from 2021 period)", () => {
+  it("should identify 11 relative small tenants (2 from 2018 period, 9 from 2021 period)", () => {
     const result = calculateDistribution(auctionCase, creditors);
 
     // Period 2018 (depositMax=110M): t03(LH서진아,110M), t14(LH양현진,110M) → priority 37M
-    // Period 2021 (depositMax=150M): t01(서○○,150M), t06,t07,t08,t09,t10,t12,t13,t15,t17 → priority 50M
-    const relativeSmallIds = ["t01", "t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
+    // Period 2021 (depositMax=150M, 대항력≥2021-05-11만): t06,t07,t08,t09,t10,t12,t13,t15,t17 → priority 50M
+    // t01(서○○) 대항력 2019-12-02 < 2021-05-11 → 구간② 대상 아님
+    const relativeSmallIds = ["t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
 
     const rsRows = result.rows.filter((r) => r.reason.includes("상대적소액임차인"));
-    expect(rsRows).toHaveLength(12);
+    expect(rsRows).toHaveLength(11);
 
     const rsIds = rsRows.map((r) => r.creditorId).sort();
     expect(rsIds).toEqual(relativeSmallIds.sort());
@@ -565,11 +566,11 @@ describe("Test 10: Real case — 2023타경5053", () => {
     });
   });
 
-  it("should identify 2 non-small tenants", () => {
+  it("should identify 3 non-small tenants", () => {
     const result = calculateDistribution(auctionCase, creditors);
 
-    // t01(서○○,150M) is now relative small (deposit 150M ≤ 150M in 2021 period)
-    const nonSmallIds = ["t02", "t04"];
+    // t01(서○○,150M) 대항력 2019-12-02 < 구간② 시작 2021-05-11 → 비소액
+    const nonSmallIds = ["t01", "t02", "t04"];
 
     // Non-small tenants should appear in STEP3 only (확정일자 or 잔여액 부족)
     nonSmallIds.forEach((id) => {
@@ -608,7 +609,7 @@ describe("Test 10: Real case — 2023타경5053", () => {
       expect(totalClaim).toBe(tenant.claimAmount);
     });
 
-    // Relative small tenants with remaining claim in STEP3
+    // Relative small tenants with remaining claim in STEP3 (t01 is non-small now)
     const relativeSmallIds = ["t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
     relativeSmallIds.forEach((id) => {
       const rows = result.rows.filter((r) => r.creditorId === id);
