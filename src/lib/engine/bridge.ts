@@ -1,4 +1,4 @@
-import { calculateDistribution } from "./engine";
+import { calculateDistribution } from "./index";
 import type { IAuctionCase, ICreditor, Region } from "./types";
 import type {
   ISimulationInput,
