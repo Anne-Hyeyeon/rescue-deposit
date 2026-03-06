@@ -44,7 +44,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
   // 소액임차인
   rows.push({
     step: "STEP 1",
-    category: "소액임차인 최우선변제",
+    category: "최선순위 소액임차인",
     creditorId: "my_tenant",
     creditorName: "나의 임차권",
     claimAmount: input.myDeposit,
@@ -60,7 +60,7 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
     .forEach((ot: IOtherTenant, i: number) => {
       rows.push({
         step: "STEP 1",
-        category: "소액임차인 최우선변제",
+        category: "최선순위 소액임차인",
         creditorId: `other_tenant_${i}`,
         creditorName: `다른 세입자 ${i + 1}`,
         claimAmount: ot.deposit,
@@ -135,30 +135,49 @@ const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
 
 // ── Category badge ────────────────────────────────────────────────────────────
 
+// Notion-style muted category colors
 const CATEGORY_COLORS: Record<string, string> = {
-  "집행비용":           "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-  "소액임차인 최우선변제": "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300",
-  "당해세":            "bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
-  "담보물권":           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  "확정일자 임차인":     "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  "상대적 소액임차인":    "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  "임금채권":           "bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-300",
-  "조세채권":           "bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-300",
-  "공과금":            "bg-red-50 text-red-500 dark:bg-red-950 dark:text-red-300",
-  "일반채권":           "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500",
-  "배당 불가":          "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500",
-  // Placeholder categories
-  "근저당권":           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  "집행비용":           "bg-[#f7f7f5] text-[#787774] dark:bg-[#373737] dark:text-[#9b9b9b]",
+  "최선순위 소액임차인": "bg-[#edf4f8] text-[#2474a0] dark:bg-[#28456c] dark:text-[#9ec5e0]",
+  "상대적 소액임차인":   "bg-[#f3eef7] text-[#6940a5] dark:bg-[#432b6b] dark:text-[#c5aee0]",
+  "당해세":            "bg-[#fdf5e3] text-[#9a6700] dark:bg-[#564328] dark:text-[#e8c469]",
+  "담보물권":           "bg-[#fff0ee] text-[#c4554d] dark:bg-[#6e3b36] dark:text-[#e8a39a]",
+  "확정일자 임차인":     "bg-[#eef6ee] text-[#2b7d2f] dark:bg-[#2b593f] dark:text-[#a5cba5]",
+  "임금채권":           "bg-[#faf0f4] text-[#a84073] dark:bg-[#5a2d48] dark:text-[#dba1be]",
+  "조세채권":           "bg-[#fdf1e4] text-[#b65c1e] dark:bg-[#5c3a1e] dark:text-[#dba67a]",
+  "공과금":            "bg-[#eef4f8] text-[#2878a0] dark:bg-[#243d53] dark:text-[#8fbdd4]",
+  "일반채권":           "bg-[#f3f3f1] text-[#6b6b69] dark:bg-[#3a3a3a] dark:text-[#9b9b9b]",
+  "배당 불가":          "bg-[#f3f3f1] text-[#6b6b69] dark:bg-[#3a3a3a] dark:text-[#9b9b9b]",
+  "근저당권":           "bg-[#fff0ee] text-[#c4554d] dark:bg-[#6e3b36] dark:text-[#e8a39a]",
 };
 
-const CategoryBadge = ({ category }: { category: string }) => (
-  <span
-    className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap
-      ${CATEGORY_COLORS[category] ?? "bg-badge-bg text-muted"}`}
-  >
-    {category}
-  </span>
-);
+// Mobile wrap map for long labels
+const CATEGORY_WRAP: Record<string, [string, string]> = {
+  "최선순위 소액임차인": ["최선순위", "소액임차인"],
+  "상대적 소액임차인":   ["상대적", "소액임차인"],
+  "확정일자 임차인":    ["확정일자", "임차인"],
+};
+
+const CategoryBadge = ({ category }: { category: string }) => {
+  const wrap = CATEGORY_WRAP[category];
+  return (
+    <span
+      className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-medium leading-tight
+        ${CATEGORY_COLORS[category] ?? "bg-badge-bg text-muted"}`}
+    >
+      {wrap ? (
+        <>
+          <span className="hidden sm:inline">{wrap[0]} {wrap[1]}</span>
+          <span className="sm:hidden">
+            {wrap[0]}<br />{wrap[1]}
+          </span>
+        </>
+      ) : (
+        category
+      )}
+    </span>
+  );
+};
 
 // ── Table row ─────────────────────────────────────────────────────────────────
 
@@ -181,41 +200,41 @@ const TableRow = ({
         ${isHighlight ? "bg-accent-bg" : "hover:bg-hover-bg"}
         ${gotNothing ? "opacity-50" : ""}`}
     >
-      <td className="px-3 py-3 text-center text-xs text-muted w-8">
+      <td className="px-2 py-2.5 text-center text-xs text-muted w-6">
         {index + 1}
       </td>
-      <td className="px-3 py-3">
+      <td className="px-1.5 py-2.5">
         <CategoryBadge category={row.category} />
       </td>
-      <td className="px-3 py-3">
-        <div className="flex items-center gap-1.5">
+      <td className="px-2 py-2.5">
+        <div className="flex items-center gap-1">
           {isHighlight && (
-            <span className="text-accent" aria-label="나의 임차권">★</span>
+            <span className="text-accent text-sm" aria-label="나의 임차권">★</span>
           )}
-          <span className={`text-sm font-medium ${isHighlight ? "text-accent" : "text-foreground"}`}>
+          <span className={`text-[13px] font-medium ${isHighlight ? "text-accent" : "text-foreground"}`}>
             {row.creditorName}
           </span>
         </div>
         {row.note && (
-          <p className="text-[10px] text-muted mt-0.5">{row.note}</p>
+          <p className="text-[10px] text-muted mt-0.5 leading-tight">{row.note}</p>
         )}
       </td>
-      <td className="px-3 py-3 text-center text-xs text-sub-text tabular-nums whitespace-nowrap">
+      <td className="px-1.5 py-2.5 text-center text-xs text-sub-text tabular-nums whitespace-nowrap">
         {row.keyDate ?? "—"}
       </td>
-      <td className="px-3 py-3 text-right text-sm text-foreground tabular-nums whitespace-nowrap">
+      <td className="px-2 py-2.5 text-right text-[13px] text-foreground tabular-nums whitespace-nowrap">
         {isExecution ? "—" : `${fmt(row.claimAmount)}원`}
       </td>
-      <td className="px-3 py-3 text-right tabular-nums whitespace-nowrap">
+      <td className="px-2 py-2.5 text-right tabular-nums whitespace-nowrap">
         {hasResult ? (
-          <span className={`text-sm font-semibold ${isHighlight ? "text-accent" : row.distributedAmount > 0 ? "text-foreground" : "text-muted"}`}>
+          <span className={`text-[13px] font-semibold ${isHighlight ? "text-accent" : row.distributedAmount > 0 ? "text-foreground" : "text-muted"}`}>
             {`${fmt(row.distributedAmount)}원`}
           </span>
         ) : (
           <span className="text-xs text-muted italic">계산 전</span>
         )}
       </td>
-      <td className="px-3 py-3 text-right text-sm tabular-nums whitespace-nowrap">
+      <td className="px-2 py-2.5 text-right text-[13px] tabular-nums whitespace-nowrap">
         {hasResult ? (
           <span className="text-sub-text">{`${fmt(row.remainingPool)}원`}</span>
         ) : (
@@ -518,13 +537,13 @@ export default function SimulateResultPage() {
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-divider bg-badge-bg/60">
-                  <th className="px-3 py-2.5 text-center text-xs font-medium text-muted w-8">#</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-muted">구분</th>
-                  <th className="px-3 py-2.5 text-left text-xs font-medium text-muted">채권자</th>
-                  <th className="px-3 py-2.5 text-center text-xs font-medium text-muted">일자</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">채권액</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">배당액</th>
-                  <th className="px-3 py-2.5 text-right text-xs font-medium text-muted">배당 후 잔액</th>
+                  <th className="px-2 py-2 text-center text-xs font-medium text-muted w-6">#</th>
+                  <th className="px-1.5 py-2 text-left text-xs font-medium text-muted">구분</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted">채권자</th>
+                  <th className="px-1.5 py-2 text-center text-xs font-medium text-muted">일자</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-muted">채권액</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-muted">배당액</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-muted">잔액</th>
                 </tr>
               </thead>
               <tbody>
@@ -556,8 +575,8 @@ export default function SimulateResultPage() {
         {/* Legend */}
         <div className="flex flex-wrap gap-x-4 gap-y-2 px-1">
           {[
-            "집행비용", "소액임차인 최우선변제", "당해세", "담보물권",
-            "확정일자 임차인", "임금채권", "조세채권", "공과금", "일반채권",
+            "집행비용", "최선순위 소액임차인", "상대적 소액임차인", "당해세",
+            "담보물권", "확정일자 임차인", "임금채권", "조세채권", "공과금", "일반채권",
           ].map((cat) => (
             <div key={cat} className="flex items-center gap-1.5">
               <CategoryBadge category={cat} />

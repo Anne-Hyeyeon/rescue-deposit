@@ -15,12 +15,12 @@ const mapRegion = (storeRegion: StoreRegion): Region => {
 
 // Map engine step to display category
 const stepToCategory = (step: string, reason: string): string => {
-  if (reason.includes("소액임차인")) return "소액임차인 최우선변제";
+  if (reason.includes("상대적소액")) return "상대적 소액임차인";
+  if (reason.includes("소액임차인")) return "최선순위 소액임차인";
   if (reason.includes("임금")) return "임금채권";
   if (reason.includes("당해세")) return "당해세";
   if (reason.includes("근저당") || reason.includes("전세권") || reason.includes("질권")) return "담보물권";
   if (reason.includes("확정일자")) return "확정일자 임차인";
-  if (reason.includes("상대적소액")) return "상대적 소액임차인";
   if (reason.includes("조세")) return "조세채권";
   if (reason.includes("공과금")) return "공과금";
   if (reason.includes("일반채권")) return "일반채권";
