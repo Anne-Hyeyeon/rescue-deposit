@@ -43,6 +43,7 @@ export interface ISimulationInput {
   // Section 1: Sale
   salePrice: number;
   executionCost: number;
+  appraisalValue: number;
   // Section 2: My Tenant Info
   myDeposit: number;
   myOpposabilityDate: string; // 대항력 발생일
@@ -73,6 +74,7 @@ interface ISimulationStore {
 const defaultInput: ISimulationInput = {
   salePrice: 200_000_000,
   executionCost: 10_000_000,
+  appraisalValue: 0,
   myDeposit: 0,
   myOpposabilityDate: "",
   myHasOccupancy: true,

@@ -327,56 +327,106 @@ const ACTION_ITEMS = [
   },
 ];
 
-// ── Sale Price Slider ─────────────────────────────────────────────────────────
+// ── Sale Price Adjuster ───────────────────────────────────────────────────────
 
-const SalePriceSlider = ({
+const RATE_BUTTONS = [100, 90, 86, 80, 70, 60] as const;
+const STEP_AMOUNT = 10_000_000; // ±1000만원
+
+const SalePriceAdjuster = ({
   salePrice,
+  appraisalValue,
   onChange,
 }: {
   salePrice: number;
+  appraisalValue: number;
   onChange: (price: number) => void;
 }) => {
-  const sliderMin = Math.max(10_000_000, Math.floor(salePrice * 0.5 / 10_000_000) * 10_000_000);
-  const sliderMax = Math.ceil(salePrice * 1.5 / 10_000_000) * 10_000_000;
+  const hasAppraisal = appraisalValue > 0;
+  const currentRate = hasAppraisal ? ((salePrice / appraisalValue) * 100).toFixed(1) : null;
+
+  const handleStep = (direction: 1 | -1) => {
+    const next = salePrice + direction * STEP_AMOUNT;
+    if (next > 0) onChange(next);
+  };
 
   return (
     <div className="rounded-2xl bg-card-bg border border-card-border p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            className="text-accent" aria-hidden="true">
-            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" />
-            <line x1="17" y1="16" x2="23" y2="16" />
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          className="text-accent" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
+        매각대금 조정
+      </h3>
+
+      {/* Current sale price + up/down */}
+      <div className="flex items-center justify-center gap-3 mb-4">
+        <button
+          type="button"
+          onClick={() => handleStep(-1)}
+          className="w-10 h-10 rounded-xl border border-card-border bg-background
+            flex items-center justify-center text-foreground hover:bg-hover-bg
+            active:scale-95 transition-all"
+          aria-label="매각대금 1000만원 감소"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <polyline points="18 15 12 9 6 15" />
           </svg>
-          매각대금 조정
-        </h3>
-        <span className="text-base font-bold text-accent tabular-nums">
-          {fmtShort(salePrice)}
-        </span>
+        </button>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-accent tabular-nums">{fmtShort(salePrice)}</p>
+          {currentRate && (
+            <p className="text-xs text-sub-text mt-0.5">
+              감정가 대비 <span className="font-semibold text-foreground">{currentRate}%</span>
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => handleStep(1)}
+          className="w-10 h-10 rounded-xl border border-card-border bg-background
+            flex items-center justify-center text-foreground hover:bg-hover-bg
+            active:scale-95 transition-all rotate-180"
+          aria-label="매각대금 1000만원 증가"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </button>
       </div>
-      <input
-        type="range"
-        min={sliderMin}
-        max={sliderMax}
-        step={10_000_000}
-        value={salePrice}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-2 rounded-full appearance-none bg-card-border cursor-pointer
-          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5
-          [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer
-          [&::-webkit-slider-thumb]:shadow-md"
-        aria-label="매각대금 조정 슬라이더"
-      />
-      <div className="flex justify-between text-xs text-muted mt-1">
-        <span>{fmtShort(sliderMin)}</span>
-        <span>{fmtShort(sliderMax)}</span>
-      </div>
-      <p className="text-xs text-sub-text mt-2">
-        슬라이더를 움직이면 매각대금에 따른 배당 결과가 실시간으로 변경됩니다.
+
+      {/* Appraisal info + rate buttons */}
+      {hasAppraisal && (
+        <div>
+          <p className="text-xs text-sub-text text-center mb-2">
+            감정가 <span className="font-medium text-foreground">{fmtShort(appraisalValue)}</span>
+          </p>
+          <div className="flex gap-2 justify-center">
+            {RATE_BUTTONS.map((rate) => {
+              const target = Math.round(appraisalValue * rate / 100);
+              const isActive = salePrice === target;
+              return (
+                <button
+                  key={rate}
+                  type="button"
+                  onClick={() => onChange(target)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                    ${isActive
+                      ? "bg-accent text-white"
+                      : "bg-background border border-card-border text-sub-text hover:text-foreground hover:bg-hover-bg"
+                    }`}
+                >
+                  {rate}%
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs text-muted text-center mt-3">
+        매각대금을 조정하면 배당 결과가 실시간으로 변경됩니다.
       </p>
     </div>
   );
@@ -426,9 +476,13 @@ export default function SimulateResultPage() {
         {/* Hero */}
         <Hero myAmount={myAmount} myDeposit={input.myDeposit} hasResult={hasResult} />
 
-        {/* Sale Price Slider */}
+        {/* Sale Price Adjuster */}
         {hasResult && (
-          <SalePriceSlider salePrice={input.salePrice} onChange={handleSalePriceChange} />
+          <SalePriceAdjuster
+            salePrice={input.salePrice}
+            appraisalValue={input.appraisalValue}
+            onChange={handleSalePriceChange}
+          />
         )}
 
         {/* Risk */}
