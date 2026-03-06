@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   useSimulationStore,
   type IDistributionRow,
   type ISimulationInput,
   type IOtherTenant,
 } from "@/store/simulationStore";
+import { runSimulation } from "@/lib/engine/bridge";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -326,16 +327,80 @@ const ACTION_ITEMS = [
   },
 ];
 
+// ── Sale Price Slider ─────────────────────────────────────────────────────────
+
+const SalePriceSlider = ({
+  salePrice,
+  onChange,
+}: {
+  salePrice: number;
+  onChange: (price: number) => void;
+}) => {
+  const sliderMin = Math.max(10_000_000, Math.floor(salePrice * 0.5 / 10_000_000) * 10_000_000);
+  const sliderMax = Math.ceil(salePrice * 1.5 / 10_000_000) * 10_000_000;
+
+  return (
+    <div className="rounded-2xl bg-card-bg border border-card-border p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            className="text-accent" aria-hidden="true">
+            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="17" y1="16" x2="23" y2="16" />
+          </svg>
+          매각대금 조정
+        </h3>
+        <span className="text-base font-bold text-accent tabular-nums">
+          {fmtShort(salePrice)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={sliderMin}
+        max={sliderMax}
+        step={10_000_000}
+        value={salePrice}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full h-2 rounded-full appearance-none bg-card-border cursor-pointer
+          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5
+          [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+          [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer
+          [&::-webkit-slider-thumb]:shadow-md"
+        aria-label="매각대금 조정 슬라이더"
+      />
+      <div className="flex justify-between text-xs text-muted mt-1">
+        <span>{fmtShort(sliderMin)}</span>
+        <span>{fmtShort(sliderMax)}</span>
+      </div>
+      <p className="text-xs text-sub-text mt-2">
+        슬라이더를 움직이면 매각대금에 따른 배당 결과가 실시간으로 변경됩니다.
+      </p>
+    </div>
+  );
+};
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function SimulateResultPage() {
   const router = useRouter();
-  const { input, result } = useSimulationStore();
+  const { input, result, setInput, setResult } = useSimulationStore();
 
   const hasInput = input.myDeposit > 0 && input.mortgageRegDate;
   useEffect(() => {
     if (!hasInput) router.replace("/simulate");
   }, [hasInput, router]);
+
+  const handleSalePriceChange = useCallback(
+    (price: number) => {
+      setInput({ salePrice: price });
+      const newResult = runSimulation({ ...input, salePrice: price });
+      setResult(newResult);
+    },
+    [input, setInput, setResult],
+  );
 
   if (!hasInput) return null;
 
@@ -360,6 +425,11 @@ export default function SimulateResultPage() {
       <div className="flex flex-col gap-5">
         {/* Hero */}
         <Hero myAmount={myAmount} myDeposit={input.myDeposit} hasResult={hasResult} />
+
+        {/* Sale Price Slider */}
+        {hasResult && (
+          <SalePriceSlider salePrice={input.salePrice} onChange={handleSalePriceChange} />
+        )}
 
         {/* Risk */}
         {hasResult && <RiskPanel myAmount={myAmount} myDeposit={input.myDeposit} />}
