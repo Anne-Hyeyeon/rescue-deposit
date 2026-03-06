@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   useSimulationStore,
@@ -148,6 +148,106 @@ const InputField = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
       transition-colors duration-150 ${props.className ?? ""}`}
   />
 );
+
+const MONEY_BUTTONS = [
+  { label: "+1억", value: 100_000_000 },
+  { label: "+1000만", value: 10_000_000 },
+  { label: "+100만", value: 1_000_000 },
+] as const;
+
+const MoneyInput = ({
+  id,
+  value,
+  onChange,
+  placeholder = "0",
+  compact = false,
+}: {
+  id: string;
+  value: number;
+  onChange: (v: number) => void;
+  placeholder?: string;
+  compact?: boolean;
+}) => {
+  const [raw, setRaw] = useState(value ? value.toLocaleString("ko-KR") : "");
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Sync from parent when not focused
+  useEffect(() => {
+    if (!isFocused) {
+      setRaw(value ? value.toLocaleString("ko-KR") : "");
+    }
+  }, [value, isFocused]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.replace(/[^0-9]/g, "");
+    const num = input ? Number(input) : 0;
+    setRaw(input ? num.toLocaleString("ko-KR") : "");
+    onChange(num);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    // Show raw digits on focus for easy editing
+    setRaw(value ? String(value) : "");
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    setRaw(value ? value.toLocaleString("ko-KR") : "");
+  };
+
+  const addAmount = (amount: number) => {
+    const next = value + amount;
+    onChange(next);
+    if (!isFocused) setRaw(next.toLocaleString("ko-KR"));
+  };
+
+  return (
+    <div>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        value={raw}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 rounded-xl border border-card-border bg-background text-foreground text-sm
+          placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent
+          transition-colors duration-150 tabular-nums"
+      />
+      {!compact && (
+        <div className="flex gap-1.5 mt-2">
+          {MONEY_BUTTONS.map(({ label, value: amt }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => addAmount(amt)}
+              className="px-2.5 py-1.5 rounded-lg border border-card-border bg-background text-xs font-medium
+                text-sub-text hover:border-accent hover:text-accent active:bg-accent-bg
+                transition-colors duration-150 cursor-pointer"
+            >
+              {label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => { onChange(0); setRaw(""); }}
+            className="px-2.5 py-1.5 rounded-lg border border-card-border bg-background text-xs font-medium
+              text-muted hover:border-error hover:text-error active:bg-error-bg
+              transition-colors duration-150 cursor-pointer"
+          >
+            초기화
+          </button>
+        </div>
+      )}
+      {value > 0 && (
+        <p className="text-xs text-sub-text mt-1.5">{formatKRW(value)}</p>
+      )}
+    </div>
+  );
+};
 
 const DateInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <InputField
@@ -300,14 +400,12 @@ const OtherTenantRow = ({
     <div className="grid grid-cols-2 gap-3 mt-2">
       <div>
         <FieldLabel htmlFor={`ot-deposit-${tenant.id}`}>보증금</FieldLabel>
-        <InputField
+        <MoneyInput
           id={`ot-deposit-${tenant.id}`}
-          type="number"
-          min={0}
-          step={1_000_000}
-          value={tenant.deposit || ""}
-          onChange={(e) => onChange({ ...tenant, deposit: Number(e.target.value) })}
+          value={tenant.deposit}
+          onChange={(v) => onChange({ ...tenant, deposit: v })}
           placeholder="0"
+          compact
         />
       </div>
       <div>
@@ -539,18 +637,12 @@ export default function SimulatePage() {
                 {/* 감정가 입력 */}
                 <div>
                   <FieldLabel htmlFor="appraisalValue">감정가 (원)</FieldLabel>
-                  <InputField
+                  <MoneyInput
                     id="appraisalValue"
-                    type="number"
-                    min={0}
-                    step={1_000_000}
-                    value={appraisalValue || ""}
-                    onChange={(e) => setAppraisalValue(Number(e.target.value))}
-                    placeholder="500000000"
+                    value={appraisalValue}
+                    onChange={setAppraisalValue}
+                    placeholder="500,000,000"
                   />
-                  {appraisalValue > 0 && (
-                    <p className="text-xs text-sub-text mt-1">{formatKRW(appraisalValue)}</p>
-                  )}
                 </div>
 
                 {/* 낙찰 여부 */}
@@ -582,20 +674,15 @@ export default function SimulatePage() {
                       /* 낙찰가 직접 입력 */
                       <div>
                         <FieldLabel htmlFor="salePrice-sold">낙찰가 (원)</FieldLabel>
-                        <InputField
+                        <MoneyInput
                           id="salePrice-sold"
-                          type="number"
-                          min={0}
-                          step={1_000_000}
-                          value={input.salePrice || ""}
-                          onChange={(e) => setInput({ salePrice: Number(e.target.value) })}
-                          placeholder="400000000"
+                          value={input.salePrice}
+                          onChange={(v) => setInput({ salePrice: v })}
+                          placeholder="400,000,000"
                         />
-                        {input.salePrice > 0 && (
-                          <p className="text-xs text-sub-text mt-1">
-                            {formatKRW(input.salePrice)} (낙찰가율 {appraisalValue > 0
-                              ? `${((input.salePrice / appraisalValue) * 100).toFixed(1)}%`
-                              : "—"})
+                        {input.salePrice > 0 && appraisalValue > 0 && (
+                          <p className="text-xs text-accent mt-1 font-medium">
+                            낙찰가율 {((input.salePrice / appraisalValue) * 100).toFixed(1)}%
                           </p>
                         )}
                       </div>
@@ -604,21 +691,12 @@ export default function SimulatePage() {
                       <>
                         <div>
                           <FieldLabel htmlFor="salePrice-expected">예상 매각대금 (원)</FieldLabel>
-                          <InputField
+                          <MoneyInput
                             id="salePrice-expected"
-                            type="number"
-                            min={0}
-                            step={1_000_000}
-                            value={input.salePrice || ""}
-                            onChange={(e) => {
-                              setInput({ salePrice: Number(e.target.value) });
-                              setBidRateOption("none");
-                            }}
-                            placeholder="400000000"
+                            value={input.salePrice}
+                            onChange={(v) => { setInput({ salePrice: v }); setBidRateOption("none"); }}
+                            placeholder="400,000,000"
                           />
-                          {input.salePrice > 0 && (
-                            <p className="text-xs text-sub-text mt-1">{formatKRW(input.salePrice)}</p>
-                          )}
                         </div>
 
                         <div>
@@ -694,18 +772,12 @@ export default function SimulatePage() {
               <div className="flex flex-col gap-4">
                 <div>
                   <FieldLabel htmlFor="appraisalGuess">예상 감정가 (원)</FieldLabel>
-                  <InputField
+                  <MoneyInput
                     id="appraisalGuess"
-                    type="number"
-                    min={0}
-                    step={1_000_000}
-                    value={appraisalValue || ""}
-                    onChange={(e) => setAppraisalValue(Number(e.target.value))}
-                    placeholder="500000000"
+                    value={appraisalValue}
+                    onChange={setAppraisalValue}
+                    placeholder="500,000,000"
                   />
-                  {appraisalValue > 0 && (
-                    <p className="text-xs text-sub-text mt-1">{formatKRW(appraisalValue)}</p>
-                  )}
                   <FieldTip label="감정가 추정하는 법">
                     <p>
                       부동산 실거래가 사이트(국토교통부, 네이버 부동산 등)에서
@@ -724,21 +796,12 @@ export default function SimulatePage() {
 
                 <div>
                   <FieldLabel htmlFor="salePrice-unknown">예상 매각대금 (원)</FieldLabel>
-                  <InputField
+                  <MoneyInput
                     id="salePrice-unknown"
-                    type="number"
-                    min={0}
-                    step={1_000_000}
-                    value={input.salePrice || ""}
-                    onChange={(e) => {
-                      setInput({ salePrice: Number(e.target.value) });
-                      setBidRateOption("none");
-                    }}
-                    placeholder="400000000"
+                    value={input.salePrice}
+                    onChange={(v) => { setInput({ salePrice: v }); setBidRateOption("none"); }}
+                    placeholder="400,000,000"
                   />
-                  {input.salePrice > 0 && (
-                    <p className="text-xs text-sub-text mt-1">{formatKRW(input.salePrice)}</p>
-                  )}
                   {errors.salePrice && (
                     <p className="text-xs text-error mt-1" role="alert">{errors.salePrice}</p>
                   )}
@@ -802,8 +865,12 @@ export default function SimulatePage() {
               <AccordionSection title="집행비용 설정 (기본값: 1,000만원)">
                 <div className="mt-3">
                   <FieldLabel htmlFor="executionCost">집행비용 (원)</FieldLabel>
-                  <InputField id="executionCost" type="number" min={0} step={100_000} value={input.executionCost}
-                    onChange={(e) => setInput({ executionCost: Number(e.target.value) })} placeholder="10000000" />
+                  <MoneyInput
+                    id="executionCost"
+                    value={input.executionCost}
+                    onChange={(v) => setInput({ executionCost: v })}
+                    placeholder="10,000,000"
+                  />
                   <p className="text-xs text-sub-text mt-1.5">
                     실제 집행비용을 모를 경우 기본값(1,000만원)을 사용하세요.
                   </p>
@@ -820,11 +887,12 @@ export default function SimulatePage() {
             <div className="flex flex-col gap-4">
               <div>
                 <FieldLabel htmlFor="myDeposit">보증금 (원)</FieldLabel>
-                <InputField id="myDeposit" type="number" min={0} step={1_000_000}
-                  value={input.myDeposit || ""}
-                  onChange={(e) => setInput({ myDeposit: Number(e.target.value) })}
-                  placeholder="50000000" />
-                {input.myDeposit > 0 && <p className="text-xs text-sub-text mt-1">{formatKRW(input.myDeposit)}</p>}
+                <MoneyInput
+                  id="myDeposit"
+                  value={input.myDeposit}
+                  onChange={(v) => setInput({ myDeposit: v })}
+                  placeholder="50,000,000"
+                />
                 {errors.myDeposit && <p className="text-xs text-error mt-1" role="alert">{errors.myDeposit}</p>}
                 <WarningChip>
                   계약 갱신으로 보증금이 증액된 경우, <strong>현재 보증금</strong>을 입력하세요.
@@ -947,11 +1015,12 @@ export default function SimulatePage() {
 
               <div>
                 <FieldLabel htmlFor="mortgageMaxClaim">채권최고액 (원)</FieldLabel>
-                <InputField id="mortgageMaxClaim" type="number" min={0} step={1_000_000}
-                  value={input.mortgageMaxClaim || ""}
-                  onChange={(e) => setInput({ mortgageMaxClaim: Number(e.target.value) })}
-                  placeholder="120000000" />
-                {input.mortgageMaxClaim > 0 && <p className="text-xs text-sub-text mt-1">{formatKRW(input.mortgageMaxClaim)}</p>}
+                <MoneyInput
+                  id="mortgageMaxClaim"
+                  value={input.mortgageMaxClaim}
+                  onChange={(v) => setInput({ mortgageMaxClaim: v })}
+                  placeholder="120,000,000"
+                />
                 {errors.mortgageMaxClaim && <p className="text-xs text-error mt-1" role="alert">{errors.mortgageMaxClaim}</p>}
                 <FieldTip label="채권최고액이란?">
                   <p>
@@ -1018,10 +1087,12 @@ export default function SimulatePage() {
                   <div className="mt-4 flex flex-col gap-3">
                     <div>
                       <FieldLabel htmlFor="propertyTaxAmount">재산세 금액 (원)</FieldLabel>
-                      <InputField id="propertyTaxAmount" type="number" min={0} step={100_000}
-                        value={input.propertyTaxAmount || ""}
-                        onChange={(e) => setInput({ propertyTaxAmount: Number(e.target.value) })}
-                        placeholder="5000000" />
+                      <MoneyInput
+                        id="propertyTaxAmount"
+                        value={input.propertyTaxAmount}
+                        onChange={(v) => setInput({ propertyTaxAmount: v })}
+                        placeholder="5,000,000"
+                      />
                     </div>
                     <div>
                       <FieldLabel htmlFor="propertyTaxLegalDate">법정기일</FieldLabel>
