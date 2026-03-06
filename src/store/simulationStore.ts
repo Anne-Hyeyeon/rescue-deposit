@@ -12,6 +12,7 @@ export interface IDistributionRow {
   remainingPool: number;     // 배당 후 잔액
   isMyTenant: boolean;
   note?: string;             // 비고 (예: "균분", "비율안분", "소액임차인")
+  keyDate?: string;          // 대항력 발생일 / 등기일 / 법정기일
 }
 
 export interface ISimulationResult {
