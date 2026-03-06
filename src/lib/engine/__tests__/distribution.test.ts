@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateDistribution } from "../engine";
+import { calculateDistribution } from "../index";
 import type { IAuctionCase, ICreditor, Region } from "../types";
 
 // Helper: convert moveInDate + confirmedDate to opposabilityDate
