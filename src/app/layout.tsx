@@ -30,13 +30,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      {process.env.NODE_ENV === "development" && (
-        <Script
-          src="//unpkg.com/react-grab/dist/index.global.js"
-          crossOrigin="anonymous"
-          strategy="beforeInteractive"
-        />
-      )}
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body
         className={`${notoSansKR.className} antialiased min-h-screen flex flex-col`}
         suppressHydrationWarning
