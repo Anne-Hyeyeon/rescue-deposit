@@ -20,6 +20,7 @@ import { runSimulation } from "@/lib/engine/bridge";
 const DEMO_2023TA5053 = {
   salePrice:     1_784_756_000,
   executionCost:     9_811_568,
+  appraisalValue: 2_230_942_880,
 
   // 나의 임차권: 김○○
   myDeposit:            160_000_000,
@@ -557,7 +558,9 @@ export default function SimulatePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    const result = runSimulation(input);
+    setInput({ appraisalValue });
+    const updatedInput = { ...input, appraisalValue };
+    const result = runSimulation(updatedInput);
     setResult(result);
     router.push("/simulate/result");
   };
