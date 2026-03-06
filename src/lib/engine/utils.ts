@@ -21,7 +21,7 @@ export const distributeProRata = (
   if (remainder <= 0 || results.length === 0) return results;
 
   return results.map((r, i) =>
-    i === results.length - 1 ? { ...r, amount: r.amount + remainder } : r
+    i < remainder ? { ...r, amount: r.amount + 1 } : r
   );
 };
 

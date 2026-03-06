@@ -65,6 +65,7 @@ export const identifyRelativeSmallTenants = (
 
       const newSmalls = candidates
         .filter((t) => !acc.ids.has(t.creditor.id))
+        .filter((t) => t.opposabilityDate >= periodStart)
         .filter((t) => t.creditor.deposit! <= threshold.depositMax);
 
       if (newSmalls.length === 0) return acc;
