@@ -163,6 +163,67 @@ const InfoChip = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+const FieldTip = ({
+  label = "도움말",
+  children,
+}: {
+  label?: string;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 text-xs text-sub-text hover:text-accent
+          transition-colors duration-150 cursor-pointer focus-visible:outline-none
+          focus-visible:ring-2 focus-visible:ring-accent/40 rounded"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span>{label}</span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="mt-2 px-4 py-3 rounded-xl bg-card-bg border border-card-border
+            text-xs text-sub-text leading-relaxed space-y-2 animate-in fade-in slide-in-from-top-1 duration-200"
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const WarningChip = ({ children }: { children: React.ReactNode }) => (
   <div className="mt-2 px-3 py-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/40 text-yellow-800 dark:text-yellow-300 text-xs leading-relaxed">
     {children}
@@ -455,6 +516,53 @@ export default function SimulatePage() {
               {errors.salePrice && <p className="text-xs text-error mt-1" role="alert">{errors.salePrice}</p>}
             </div>
 
+            <FieldTip label="매각대금 산정 도움말">
+              <p className="font-medium text-foreground">
+                지역별 평균 낙찰가율 (감정가 대비)
+              </p>
+              <table className="w-full text-xs mt-1">
+                <thead>
+                  <tr className="border-b border-card-border">
+                    <th className="text-left py-1 font-medium text-foreground">지역</th>
+                    <th className="text-right py-1 font-medium text-foreground">아파트</th>
+                    <th className="text-right py-1 font-medium text-foreground">다가구/다세대</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sub-text">
+                  <tr className="border-b border-card-border/50">
+                    <td className="py-1">서울</td>
+                    <td className="text-right">90~100%</td>
+                    <td className="text-right">75~90%</td>
+                  </tr>
+                  <tr className="border-b border-card-border/50">
+                    <td className="py-1">수도권</td>
+                    <td className="text-right">85~95%</td>
+                    <td className="text-right">70~85%</td>
+                  </tr>
+                  <tr className="border-b border-card-border/50">
+                    <td className="py-1">광역시</td>
+                    <td className="text-right">80~90%</td>
+                    <td className="text-right">65~80%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1">그 외</td>
+                    <td className="text-right">75~85%</td>
+                    <td className="text-right">60~75%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="mt-2">
+                <span className="font-medium text-foreground">감정가를 모를 때</span>{" "}
+                — 국토교통부 실거래가 공개시스템이나 KB부동산 시세를 참고하세요.
+                경매 물건의 경우 법원경매정보 사이트에서 감정평가액을 확인할 수 있습니다.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">유찰 횟수에 따른 저감</span>{" "}
+                — 1회 유찰 시 감정가의 80%, 2회 유찰 시 64%(80%x80%)로
+                최저매각가격이 낮아집니다. 유찰 횟수를 확인한 뒤 예상 낙찰가를 조정하세요.
+              </p>
+            </FieldTip>
+
             <div className="mt-4">
               <AccordionSection title="집행비용 설정 (기본값: 1,000만원)">
                 <div className="mt-3">
@@ -502,6 +610,27 @@ export default function SimulatePage() {
                   onChange={(e) => setInput({ myOpposabilityDate: e.target.value })}
                 />
                 {errors.myOpposabilityDate && <p className="text-xs text-error mt-1" role="alert">{errors.myOpposabilityDate}</p>}
+                <FieldTip label="대항력 발생일 계산법">
+                  <p>
+                    <span className="font-medium text-foreground">대항력 발생일</span>{" "}
+                    = 전입신고일 다음날과 확정일자 중 <strong>더 늦은 날</strong>입니다.
+                  </p>
+                  <div className="mt-1 space-y-1">
+                    <p>
+                      <span className="font-medium text-foreground">예시 1:</span>{" "}
+                      전입신고 3/1, 확정일자 3/1 → 대항력 발생일 <strong>3/2</strong>
+                    </p>
+                    <p>
+                      <span className="font-medium text-foreground">예시 2:</span>{" "}
+                      전입신고 3/1, 확정일자 3/5 → 대항력 발생일 <strong>3/5</strong>
+                    </p>
+                  </div>
+                  <p className="mt-1">
+                    전입신고일은 주민센터 방문일이며, 확정일자는 임대차계약서에
+                    확정일자 도장을 받은 날입니다. 두 날짜 모두 임대차계약서와 전입세대
+                    열람으로 확인할 수 있어요.
+                  </p>
+                </FieldTip>
               </div>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -568,6 +697,17 @@ export default function SimulatePage() {
                 <DateInput id="mortgageRegDate" value={input.mortgageRegDate}
                   onChange={(e) => setInput({ mortgageRegDate: e.target.value })} />
                 {errors.mortgageRegDate && <p className="text-xs text-error mt-1" role="alert">{errors.mortgageRegDate}</p>}
+                <FieldTip label="근저당 찾는 법">
+                  <p>
+                    등기부등본 <span className="font-medium text-foreground">을구(乙區)</span>에서
+                    &quot;근저당권설정&quot;이라고 적힌 항목 중{" "}
+                    <strong>가장 오래된(먼저 설정된) 근저당</strong>의 접수일을 입력하세요.
+                  </p>
+                  <p>
+                    말소된 근저당(밑줄 처리)은 제외하고, 현재 살아 있는
+                    근저당만 확인하면 됩니다.
+                  </p>
+                </FieldTip>
               </div>
 
               <div>
@@ -578,6 +718,17 @@ export default function SimulatePage() {
                   placeholder="120000000" />
                 {input.mortgageMaxClaim > 0 && <p className="text-xs text-sub-text mt-1">{formatKRW(input.mortgageMaxClaim)}</p>}
                 {errors.mortgageMaxClaim && <p className="text-xs text-error mt-1" role="alert">{errors.mortgageMaxClaim}</p>}
+                <FieldTip label="채권최고액이란?">
+                  <p>
+                    <span className="font-medium text-foreground">채권최고액</span>은
+                    등기부등본 을구에 기재된 금액으로, 실제 대출금(채권원금)이 아니라
+                    은행이 우선 변제받을 수 있는 <strong>최대 한도</strong>입니다.
+                  </p>
+                  <p>
+                    보통 대출금의 120~130% 수준으로 설정됩니다.
+                    예: 대출 1억 → 채권최고액 1.2~1.3억
+                  </p>
+                </FieldTip>
               </div>
             </div>
           </Card>
