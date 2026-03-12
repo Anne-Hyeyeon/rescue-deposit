@@ -75,6 +75,14 @@ export const buildDistributionQueue = (
   region: Region,
   baseRightDate: string
 ): ReadonlyArray<IQueueItem> => {
+  const threshold = getSmallTenantThreshold(region, baseRightDate);
+  const tenantsWithPriorityDate = tenants.filter(
+    (
+      tenant
+    ): tenant is ITenantWithDates & { readonly priorityDate: string } =>
+      tenant.priorityDate !== null
+  );
+
   // (1) Mortgage, jeonse, pledge_on_mortgage
   const mortgageItems: ReadonlyArray<IQueueItem> = creditors
     .filter(
@@ -100,16 +108,15 @@ export const buildDistributionQueue = (
     }));
 
   // (2) Confirmed date tenants (deduct small tenant portions)
-  const tenantItems: ReadonlyArray<IQueueItem> = tenants
-    .filter((t) => t.priorityDate !== null)
-    .map((t) => {
+  const tenantItems: ReadonlyArray<IQueueItem> = tenantsWithPriorityDate
+    .flatMap((t) => {
       const baseAmount = t.creditor.claimAmount;
 
       // (a) Absolute small tenant deduction
       const absoluteDeduction = absoluteSmallIds.has(t.creditor.id)
         ? Math.min(
             t.creditor.deposit!,
-            getSmallTenantThreshold(region, baseRightDate).priorityMax
+            threshold.priorityMax
           )
         : 0;
 
@@ -122,19 +129,22 @@ export const buildDistributionQueue = (
 
       const remainingClaim = baseAmount - absoluteDeduction - relativeDeduction;
 
-      if (remainingClaim <= 0) return null as unknown as IQueueItem;
+      if (remainingClaim <= 0) {
+        return [];
+      }
 
-      return {
-        creditorId: t.creditor.id,
-        creditorName: t.creditor.name,
-        type: "tenant" as const,
-        claimAmount: remainingClaim,
-        sortDate: t.priorityDate!,
-        sortSubOrder: 1,
-        reason: `확정일자임차인 (${t.priorityDate})`,
-      };
-    })
-    .filter((item) => item !== null);
+      return [
+        {
+          creditorId: t.creditor.id,
+          creditorName: t.creditor.name,
+          type: "tenant" as const,
+          claimAmount: remainingClaim,
+          sortDate: t.priorityDate,
+          sortSubOrder: 1,
+          reason: `확정일자임차인 (${t.priorityDate})`,
+        },
+      ];
+    });
 
   // (3) Deferred property tax (has tenants with opposabilityDate before legalDate)
   const deferredTaxItems: ReadonlyArray<IQueueItem> = creditors

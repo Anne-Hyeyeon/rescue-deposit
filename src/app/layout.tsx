@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Noto_Sans_KR } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Header } from "@/components/Header";
@@ -30,17 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <head>
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
-            crossOrigin="anonymous"
-            strategy="beforeInteractive"
-          />
-        )}
-      </head>
+      <head suppressHydrationWarning />
       <body
-        className={`${notoSansKR.className} antialiased min-h-screen flex flex-col`}
+        className={`${notoSansKR.className} flex min-h-screen flex-col antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider>

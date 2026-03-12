@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getProfile, upsertProfile } from "@/lib/supabase/profiles";
 
+interface INicknameMessage {
+  type: "error" | "success";
+  text: string;
+}
+
 export default function MyPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -13,9 +18,11 @@ export default function MyPage() {
 
   const [nickname, setNickname] = useState("");
   const [savedNickname, setSavedNickname] = useState<string | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [loadedProfileUserId, setLoadedProfileUserId] = useState<string | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
-  const [nicknameMsg, setNicknameMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [nicknameMsg, setNicknameMsg] = useState<INicknameMessage | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login?redirect=/mypage");
@@ -24,7 +31,6 @@ export default function MyPage() {
   useEffect(() => {
     if (!user) return;
 
-    setProfileLoading(true);
     let cancelled = false;
 
     getProfile(user.id).then((profile) => {
@@ -36,11 +42,13 @@ export default function MyPage() {
         "";
       setNickname(name);
       setSavedNickname(name);
-      setProfileLoading(false);
+      setLoadedProfileUserId(user.id);
     });
 
     return () => { cancelled = true; };
   }, [user]);
+
+  const profileLoading = user ? loadedProfileUserId !== user.id : false;
 
   const validateNickname = (value: string): string | null => {
     const trimmed = value.trim();
@@ -69,7 +77,10 @@ export default function MyPage() {
 
   if (isLoading || !user) return null;
 
-  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+  const avatarUrl =
+    typeof user.user_metadata?.avatar_url === "string"
+      ? user.user_metadata.avatar_url
+      : undefined;
   const headerName = savedNickname || user.email || "사용자";
 
   return (
