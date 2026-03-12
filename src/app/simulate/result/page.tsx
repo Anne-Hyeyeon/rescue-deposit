@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback /*, useRef */ } from "react";
 import {
   useSimulationStore,
   type IDistributionRow,
@@ -185,7 +185,7 @@ const TableRow = ({
   row,
   index,
   hasResult,
-  coachHighlight,
+  // coachHighlight,
 }: {
   row: IDistributionRow;
   index: number;
@@ -201,8 +201,7 @@ const TableRow = ({
       data-row-index={index}
       className={`border-b border-divider transition-colors
         ${isHighlight ? "bg-accent-bg" : "hover:bg-hover-bg"}
-        ${gotNothing && !coachHighlight ? "opacity-50" : ""}
-        ${coachHighlight ? "bg-accent-bg/60" : ""}`}
+        ${gotNothing ? "opacity-50" : ""}`}
     >
       <td className="px-2 py-2.5 text-center text-xs text-muted w-6">
         {index + 1}
@@ -466,8 +465,8 @@ const SalePriceAdjuster = ({
   );
 };
 
-// ── AI Coach Mark ─────────────────────────────────────────────────────────────
-
+// ── AI Coach Mark (temporarily disabled) ──────────────────────────────────────
+/*
 interface ICoachStep {
   title: string;
   description: string;
@@ -812,6 +811,7 @@ const CoachOverlay = ({
     </div>
   );
 };
+*/
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
@@ -833,10 +833,10 @@ export default function SimulateResultPage() {
     [input, setInput, setResult],
   );
 
-  // Coach mark state
-  const [coachActive, setCoachActive] = useState(false);
-  const [coachStep, setCoachStep] = useState(0);
-  const tableRef = useRef<HTMLTableElement>(null);
+  // Coach mark state (temporarily disabled)
+  // const [coachActive, setCoachActive] = useState(false);
+  // const [coachStep, setCoachStep] = useState(0);
+  // const tableRef = useRef<HTMLTableElement>(null);
 
   if (!hasInput) return null;
 
@@ -845,12 +845,13 @@ export default function SimulateResultPage() {
   const myAmount = result?.myDistributedAmount ?? 0;
   const remainingBalance = result?.remainingBalance ?? 0;
 
-  const coachSteps = hasResult
-    ? generateCoachSteps(rows, input.myDeposit, myAmount, input.salePrice, input.executionCost)
-    : [];
-  const highlightedIndices = coachActive && coachSteps[coachStep]
-    ? new Set(coachSteps[coachStep].rowIndices)
-    : new Set<number>();
+  // Coach steps (temporarily disabled)
+  // const coachSteps = hasResult
+  //   ? generateCoachSteps(rows, input.myDeposit, myAmount, input.salePrice, input.executionCost)
+  //   : [];
+  // const highlightedIndices = coachActive && coachSteps[coachStep]
+  //   ? new Set(coachSteps[coachStep].rowIndices)
+  //   : new Set<number>();
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-10 pb-24">
@@ -897,6 +898,7 @@ export default function SimulateResultPage() {
                   <span className="font-medium text-foreground">{fmtShort(input.salePrice - input.executionCost)}</span>
                 </p>
               </div>
+              {/* AI 해설 보기 버튼 (temporarily disabled)
               {hasResult && (
                 <button
                   type="button"
@@ -911,6 +913,7 @@ export default function SimulateResultPage() {
                   해설 보기
                 </button>
               )}
+              */}
             </div>
           </div>
 
@@ -934,7 +937,6 @@ export default function SimulateResultPage() {
                     row={row}
                     index={i}
                     hasResult={hasResult}
-                    coachHighlight={coachActive && highlightedIndices.has(i)}
                   />
                 ))}
               </tbody>
@@ -1018,7 +1020,7 @@ export default function SimulateResultPage() {
         </div>
       </div>
 
-      {/* Coach Overlay — real coachmark with spotlight + bottom sheet */}
+      {/* Coach Overlay (temporarily disabled)
       {coachActive && coachSteps.length > 0 && (
         <CoachOverlay
           steps={coachSteps}
@@ -1029,6 +1031,7 @@ export default function SimulateResultPage() {
           tableRef={tableRef}
         />
       )}
+      */}
     </div>
   );
 }
