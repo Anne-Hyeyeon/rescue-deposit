@@ -48,7 +48,7 @@ export default function MyPage() {
     return () => { cancelled = true; };
   }, [user]);
 
-  const profileLoading = Boolean(user) && loadedProfileUserId !== user.id;
+  const profileLoading = user ? loadedProfileUserId !== user.id : false;
 
   const validateNickname = (value: string): string | null => {
     const trimmed = value.trim();
