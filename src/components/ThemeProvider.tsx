@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -20,27 +27,38 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+const isTheme = (value: string | null): value is Theme =>
+  value === "light" || value === "dark";
+
+const getSystemTheme = (): Theme =>
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+const getInitialTheme = (): Theme => {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  const storedTheme = window.localStorage.getItem("theme");
+  return isTheme(storedTheme) ? storedTheme : getSystemTheme();
+};
+
+const applyTheme = (theme: Theme) => {
+  document.documentElement.setAttribute("data-theme", theme);
+};
+
+const subscribeMounted = () => () => {};
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const mounted = useSyncExternalStore(
+    subscribeMounted,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    // 1순위: localStorage에 저장된 테마
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
-      document.documentElement.setAttribute("data-theme", stored);
-    } else {
-      // 2순위: 시스템 설정 감지
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      const systemTheme = prefersDark ? "dark" : "light";
-      setTheme(systemTheme);
-      document.documentElement.setAttribute("data-theme", systemTheme);
-    }
-    setMounted(true);
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   // 시스템 설정 변경 감지
   useEffect(() => {
@@ -50,7 +68,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (!localStorage.getItem("theme")) {
         const newTheme = e.matches ? "dark" : "light";
         setTheme(newTheme);
-        document.documentElement.setAttribute("data-theme", newTheme);
       }
     };
     mediaQuery.addEventListener("change", handler);
@@ -61,7 +78,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   return (
