@@ -50,7 +50,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   if (input.mortgageMaxClaim > 0) {
     creditors.push({
       id: "mortgage_1",
-      name: "선순위 근저당",
+      name: input.mortgageName || "선순위 근저당",
       type: "mortgage",
       claimAmount: input.mortgageMaxClaim,
       registrationDate: input.mortgageRegDate,
@@ -62,7 +62,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   if (input.myDeposit > 0 && input.myOpposabilityDate) {
     creditors.push({
       id: "my_tenant",
-      name: "나의 임차권",
+      name: (input.myName && input.myName !== "모름") ? input.myName : "나의 임차권",
       type: "tenant",
       claimAmount: input.myDeposit,
       opposabilityDate: input.myOpposabilityDate,
@@ -76,7 +76,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
     .forEach((ot, i) => {
       creditors.push({
         id: ot.id,
-        name: `다른 세입자 ${i + 1}`,
+        name: (ot.name && ot.name !== "모름") ? ot.name : `다른 세입자 ${i + 1}`,
         type: "tenant",
         claimAmount: ot.deposit,
         opposabilityDate: ot.opposabilityDate,

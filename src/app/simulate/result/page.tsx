@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   useSimulationStore,
   type IDistributionRow,
@@ -185,10 +185,12 @@ const TableRow = ({
   row,
   index,
   hasResult,
+  coachHighlight,
 }: {
   row: IDistributionRow;
   index: number;
   hasResult: boolean;
+  coachHighlight?: boolean;
 }) => {
   const isHighlight = row.isMyTenant;
   const isExecution = row.step === "집행비용";
@@ -196,9 +198,11 @@ const TableRow = ({
 
   return (
     <tr
+      data-row-index={index}
       className={`border-b border-divider transition-colors
         ${isHighlight ? "bg-accent-bg" : "hover:bg-hover-bg"}
-        ${gotNothing ? "opacity-50" : ""}`}
+        ${gotNothing && !coachHighlight ? "opacity-50" : ""}
+        ${coachHighlight ? "bg-accent-bg/60" : ""}`}
     >
       <td className="px-2 py-2.5 text-center text-xs text-muted w-6">
         {index + 1}
@@ -462,6 +466,353 @@ const SalePriceAdjuster = ({
   );
 };
 
+// ── AI Coach Mark ─────────────────────────────────────────────────────────────
+
+interface ICoachStep {
+  title: string;
+  description: string;
+  rowIndices: number[];
+}
+
+const generateCoachSteps = (
+  rows: IDistributionRow[],
+  myDeposit: number,
+  myAmount: number,
+  salePrice: number,
+  executionCost: number,
+): ICoachStep[] => {
+  const steps: ICoachStep[] = [];
+  const distributable = salePrice - executionCost;
+
+  // Step 0: Overview
+  steps.push({
+    title: "배당표를 읽어볼게요",
+    description: `매각대금 ${fmtShort(salePrice)}에서 집행비용 ${fmtShort(executionCost)}을 먼저 공제하면, 실제로 채권자들에게 나눠줄 수 있는 돈(배당가능액)은 ${fmtShort(distributable)}입니다. 이제 법이 정한 순서대로 하나씩 배분해 볼게요.`,
+    rowIndices: [],
+  });
+
+  // Group rows by category
+  const groups: { category: string; indices: number[] }[] = [];
+  rows.forEach((row, i) => {
+    const last = groups[groups.length - 1];
+    if (last && last.category === row.category) {
+      last.indices.push(i);
+    } else {
+      groups.push({ category: row.category, indices: [i] });
+    }
+  });
+
+  groups.forEach((group) => {
+    const groupRows = group.indices.map((i) => rows[i]);
+    const totalClaim = groupRows.reduce((s, r) => s + r.claimAmount, 0);
+    const totalDist = groupRows.reduce((s, r) => s + r.distributedAmount, 0);
+    const names = groupRows.map((r) => r.creditorName).join(", ");
+    const hasMyTenant = groupRows.some((r) => r.isMyTenant);
+
+    switch (group.category) {
+      case "집행비용":
+        steps.push({
+          title: "1단계: 집행비용 공제",
+          description: `경매를 진행하는 데 드는 비용(법원 수수료, 감정비 등) ${fmtShort(groupRows[0].claimAmount)}이 가장 먼저 빠집니다. 이건 모든 채권자보다 우선합니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "최선순위 소액임차인": {
+        const count = groupRows.length;
+        const myRow = groupRows.find((r) => r.isMyTenant);
+        let desc = `소액보증금에 해당하는 세입자 ${count}명이 최우선변제를 받습니다. 이들은 근저당보다 먼저 배당받을 수 있는 특별한 보호를 받아요.`;
+        if (myRow) {
+          desc += ` 당신도 여기에 해당하여 ${fmtShort(myRow.distributedAmount)}을 최우선으로 받습니다.`;
+        }
+        if (count > 1) {
+          const allFull = groupRows.every((r) => r.distributedAmount >= r.claimAmount);
+          if (!allFull) {
+            desc += " 소액임차인이 여러 명이라 배당가능액이 부족하면, 채권액 비율로 나눠 갖게 됩니다(균분).";
+          }
+        }
+        steps.push({
+          title: "2단계: 소액임차인 최우선변제",
+          description: desc,
+          rowIndices: group.indices,
+        });
+        break;
+      }
+
+      case "상대적 소액임차인": {
+        const count = groupRows.length;
+        let desc = `상대적 소액임차인 ${count}명이 배당받습니다. 먼저 최선순위 근저당 설정일 기준으로 절대적 소액임차인(최우선변제 대상)을 걸러내고, 남은 후순위 임차인들을 대상으로 이후 시행령 개정 구간을 하나씩 순회합니다. 각 구간에서 기준금액(보증금 한도) 이하인 임차인이 걸리면, 해당 구간의 우선변제금만큼 먼저 배당받습니다. 분류된 임차인은 다음 구간에서 제외하고, 다음 구간으로 넘어가면 기준금액이 올라가므로 새로 걸리는 임차인이 생깁니다.`;
+        const myRow = groupRows.find((r) => r.isMyTenant);
+        if (myRow) {
+          desc += ` 당신도 여기에 해당하여 ${fmtShort(myRow.distributedAmount)}을 배당받습니다.`;
+        }
+        if (count > 1) {
+          const allFull = groupRows.every((r) => r.distributedAmount >= r.claimAmount);
+          if (!allFull) {
+            desc += " 같은 순위의 상대적 소액임차인이 여러 명이고 잔여액이 부족하면 균분 배당합니다.";
+          }
+        }
+        steps.push({
+          title: "상대적 소액임차인 배당",
+          description: desc,
+          rowIndices: group.indices,
+        });
+        break;
+      }
+
+      case "당해세":
+        steps.push({
+          title: "당해세 배당",
+          description: `해당 부동산에 부과된 재산세(당해세) ${fmtShort(totalClaim)}이 배당됩니다. 당해세는 근저당에 우선하는 강력한 조세채권이에요.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "담보물권":
+      case "근저당권":
+        steps.push({
+          title: "담보물권(근저당) 배당",
+          description: `근저당권자 ${names}에게 채권최고액 ${fmtShort(totalClaim)} 중 ${fmtShort(totalDist)}이 배당됩니다. 근저당은 설정일 기준으로 임차인과 순위를 다툽니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "확정일자 임차인": {
+        const count = groupRows.length;
+        const myRow = groupRows.find((r) => r.isMyTenant);
+        let desc = `확정일자를 갖춘 임차인 ${count}명이 날짜 순서대로 배당받습니다. 근저당 설정일보다 늦은 확정일자 임차인은 근저당 뒤 순서가 됩니다.`;
+        if (myRow) {
+          if (myRow.distributedAmount > 0) {
+            desc += ` 당신은 여기서 ${fmtShort(myRow.distributedAmount)}을 추가로 배당받습니다.`;
+          } else {
+            desc += " 안타깝지만, 이 단계에서 남은 배당가능액이 부족하여 추가 배당을 받지 못합니다.";
+          }
+        }
+        steps.push({
+          title: "확정일자 임차인 배당",
+          description: desc,
+          rowIndices: group.indices,
+        });
+        break;
+      }
+
+      case "임금채권":
+        steps.push({
+          title: "임금채권 배당",
+          description: `근로자의 임금채권 ${fmtShort(totalClaim)}이 배당됩니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "조세채권":
+        steps.push({
+          title: "조세채권 배당",
+          description: `국세·지방세 등 조세채권 ${fmtShort(totalClaim)}이 배당됩니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "일반채권":
+        steps.push({
+          title: "일반채권 배당",
+          description: `담보 없는 일반채권 ${fmtShort(totalClaim)}이 배당됩니다. 우선순위가 가장 낮아 남은 금액에서만 배당받을 수 있습니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      case "배당 불가":
+        steps.push({
+          title: "배당 불가",
+          description: `${names}은(는) 배당가능액이 소진되어 배당받지 못합니다. 잔여액이 부족한 경우 후순위 채권자는 한 푼도 받지 못할 수 있습니다.`,
+          rowIndices: group.indices,
+        });
+        break;
+
+      default:
+        steps.push({
+          title: group.category,
+          description: `${names}에게 ${fmtShort(totalDist)}이 배당됩니다.`,
+          rowIndices: group.indices,
+        });
+    }
+  });
+
+  // Final summary
+  const recoveryRate = myDeposit > 0 ? ((myAmount / myDeposit) * 100).toFixed(1) : "0";
+  const loss = myDeposit - myAmount;
+  let finalDesc = `최종 결과, 보증금 ${fmtShort(myDeposit)} 중 ${fmtShort(myAmount)}을 돌려받을 수 있을 것으로 예상됩니다. 회수율은 ${recoveryRate}%입니다.`;
+  if (loss > 0) {
+    finalDesc += ` 미회수 금액 ${fmtShort(loss)}에 대해서는 배당요구 신청, 임차권등기명령 등 추가 조치를 검토해 보세요.`;
+  } else {
+    finalDesc += " 보증금 전액 회수가 가능한 상황입니다!";
+  }
+  steps.push({
+    title: "나의 최종 배당 결과",
+    description: finalDesc,
+    rowIndices: rows.reduce<number[]>((acc, r, i) => (r.isMyTenant ? [...acc, i] : acc), []),
+  });
+
+  return steps;
+};
+
+const CoachOverlay = ({
+  steps,
+  currentStep,
+  onPrev,
+  onNext,
+  onClose,
+  tableRef,
+}: {
+  steps: ICoachStep[];
+  currentStep: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onClose: () => void;
+  tableRef: React.RefObject<HTMLTableElement | null>;
+}) => {
+  const [spotRect, setSpotRect] = useState<{
+    top: number; left: number; width: number; height: number;
+  } | null>(null);
+
+  const step = steps[currentStep];
+  const isFirst = currentStep === 0;
+  const isLast = currentStep === steps.length - 1;
+
+  // Scroll to highlighted row + calculate spotlight rect
+  useEffect(() => {
+    const hasRows = step.rowIndices.length > 0 && tableRef.current;
+
+    if (hasRows) {
+      const first = tableRef.current!.querySelector(
+        `[data-row-index="${step.rowIndices[0]}"]`
+      );
+      if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      setSpotRect(null);
+    }
+
+    const recalc = () => {
+      if (!hasRows) { setSpotRect(null); return; }
+      const rects = step.rowIndices
+        .map(i =>
+          tableRef.current?.querySelector(`[data-row-index="${i}"]`)?.getBoundingClientRect()
+        )
+        .filter((r): r is DOMRect => !!r);
+      if (rects.length === 0) { setSpotRect(null); return; }
+      const P = 3;
+      setSpotRect({
+        top: Math.min(...rects.map(r => r.top)) - P,
+        left: Math.min(...rects.map(r => r.left)) - P,
+        width: Math.max(...rects.map(r => r.right)) - Math.min(...rects.map(r => r.left)) + P * 2,
+        height: Math.max(...rects.map(r => r.bottom)) - Math.min(...rects.map(r => r.top)) + P * 2,
+      });
+    };
+
+    const timer = setTimeout(recalc, 400);
+    const onScroll = () => requestAnimationFrame(recalc);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [currentStep, step.rowIndices, tableRef]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight" && !isLast) onNext();
+      else if (e.key === "ArrowLeft" && !isFirst) onPrev();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [isFirst, isLast, onPrev, onNext, onClose]);
+
+  return (
+    <div className="fixed inset-0" style={{ zIndex: 100 }} role="dialog" aria-modal="true" aria-label="AI 배당표 해설">
+      {/* Click catcher — closes overlay */}
+      <div className="absolute inset-0" onClick={onClose} role="presentation" />
+
+      {/* Spotlight (box-shadow trick) or full dim */}
+      {spotRect ? (
+        <div
+          className="fixed rounded-md pointer-events-none transition-all duration-300 ease-out"
+          style={{
+            zIndex: 1,
+            top: spotRect.top,
+            left: spotRect.left,
+            width: spotRect.width,
+            height: spotRect.height,
+            boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.55)",
+            border: "2px solid var(--accent)",
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-black/55 pointer-events-none" style={{ zIndex: 1 }} />
+      )}
+
+      {/* Bottom sheet tooltip */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 pointer-events-none" style={{ zIndex: 2 }}>
+        <div className="max-w-lg mx-auto rounded-2xl bg-card-bg border border-card-border shadow-2xl p-5 pointer-events-auto">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-accent text-white text-xs font-bold">
+                AI
+              </span>
+              <span className="text-xs text-accent font-medium">
+                {currentStep + 1} / {steps.length}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-6 h-6 rounded-lg hover:bg-card-border flex items-center justify-center text-muted hover:text-foreground transition-colors cursor-pointer"
+              aria-label="해설 닫기"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <h4 className="text-sm font-bold text-foreground mb-2">{step.title}</h4>
+          <p className="text-sm text-sub-text leading-relaxed">{step.description}</p>
+
+          <div className="flex items-center justify-between mt-4">
+            <button
+              type="button"
+              onClick={onPrev}
+              disabled={isFirst}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+                ${isFirst
+                  ? "text-muted cursor-not-allowed"
+                  : "text-accent hover:bg-accent/10"
+                }`}
+            >
+              ← 이전
+            </button>
+            <div className="h-0.5 bg-card-border rounded-full flex-1 mx-4 overflow-hidden">
+              <div
+                className="h-full bg-accent rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={isLast ? onClose : onNext}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-accent hover:bg-accent/90 transition-colors cursor-pointer"
+            >
+              {isLast ? "완료" : "다음 →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function SimulateResultPage() {
@@ -482,12 +833,24 @@ export default function SimulateResultPage() {
     [input, setInput, setResult],
   );
 
+  // Coach mark state
+  const [coachActive, setCoachActive] = useState(false);
+  const [coachStep, setCoachStep] = useState(0);
+  const tableRef = useRef<HTMLTableElement>(null);
+
   if (!hasInput) return null;
 
   const rows = result ? result.rows : buildPlaceholderRows(input);
   const hasResult = result !== null;
   const myAmount = result?.myDistributedAmount ?? 0;
   const remainingBalance = result?.remainingBalance ?? 0;
+
+  const coachSteps = hasResult
+    ? generateCoachSteps(rows, input.myDeposit, myAmount, input.salePrice, input.executionCost)
+    : [];
+  const highlightedIndices = coachActive && coachSteps[coachStep]
+    ? new Set(coachSteps[coachStep].rowIndices)
+    : new Set<number>();
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-10 pb-24">
@@ -524,17 +887,35 @@ export default function SimulateResultPage() {
         {/* Distribution Table */}
         <div className="bg-card-bg border border-card-border rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-divider">
-            <h2 className="text-sm font-semibold text-foreground">배당 순서표</h2>
-            <p className="text-xs text-sub-text mt-0.5">
-              집행비용부터 배당 순서대로 • 매각대금{" "}
-              <span className="font-medium text-foreground">{fmtShort(input.salePrice)}</span>
-              {" "}→ 배당가능액{" "}
-              <span className="font-medium text-foreground">{fmtShort(input.salePrice - input.executionCost)}</span>
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">배당 순서표</h2>
+                <p className="text-xs text-sub-text mt-0.5">
+                  집행비용부터 배당 순서대로 • 매각대금{" "}
+                  <span className="font-medium text-foreground">{fmtShort(input.salePrice)}</span>
+                  {" "}→ 배당가능액{" "}
+                  <span className="font-medium text-foreground">{fmtShort(input.salePrice - input.executionCost)}</span>
+                </p>
+              </div>
+              {hasResult && (
+                <button
+                  type="button"
+                  onClick={() => { setCoachActive(true); setCoachStep(0); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+                    bg-accent/10 text-accent text-xs font-medium
+                    hover:bg-accent/20 transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full bg-accent text-white text-[9px] font-bold">
+                    AI
+                  </span>
+                  해설 보기
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table ref={tableRef} className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-divider bg-badge-bg/60">
                   <th className="px-2 py-2 text-center text-xs font-medium text-muted w-6">#</th>
@@ -548,7 +929,13 @@ export default function SimulateResultPage() {
               </thead>
               <tbody>
                 {rows.map((row, i) => (
-                  <TableRow key={`${row.creditorId}-${i}`} row={row} index={i} hasResult={hasResult} />
+                  <TableRow
+                    key={`${row.creditorId}-${i}`}
+                    row={row}
+                    index={i}
+                    hasResult={hasResult}
+                    coachHighlight={coachActive && highlightedIndices.has(i)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -630,6 +1017,18 @@ export default function SimulateResultPage() {
           </p>
         </div>
       </div>
+
+      {/* Coach Overlay — real coachmark with spotlight + bottom sheet */}
+      {coachActive && coachSteps.length > 0 && (
+        <CoachOverlay
+          steps={coachSteps}
+          currentStep={coachStep}
+          onPrev={() => setCoachStep(Math.max(0, coachStep - 1))}
+          onNext={() => setCoachStep(Math.min(coachSteps.length - 1, coachStep + 1))}
+          onClose={() => setCoachActive(false)}
+          tableRef={tableRef}
+        />
+      )}
     </div>
   );
 }
