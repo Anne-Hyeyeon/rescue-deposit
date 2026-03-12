@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import {
   useSimulationStore,
@@ -23,11 +23,13 @@ const DEMO_2023TA5053 = {
   appraisalValue: 2_230_942_880,
 
   // 나의 임차권: 김○○
+  myName:               "김○○",
   myDeposit:            160_000_000,
   myOpposabilityDate:   "2020-08-24", // 대항력 발생일
   myHasOccupancy:       true,
 
   // 선순위 근저당 — 웰컴저축은행 근저당권부질권
+  mortgageName:      "웰컴저축은행",
   mortgagePrincipal: 784_560_000,
   mortgageMaxClaim:  784_560_000,
   mortgageRegDate:   "2017-12-04",
@@ -41,22 +43,22 @@ const DEMO_2023TA5053 = {
 
   // 다른 세입자 16명 (대항력 발생일 순)
   otherTenants: [
-    { id: "t-01", deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true  }, // 서○○
-    { id: "t-02", deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true  }, // 노○○
-    { id: "t-03", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true  }, // LH(서진아)
-    { id: "t-04", deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true  }, // 나○○
-    { id: "t-05", deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true  }, // 김○○
-    { id: "t-06", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true  }, // LH(양성경)
-    { id: "t-07", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true  }, // LH(이예원)
-    { id: "t-08", deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true  }, // 박○○
-    { id: "t-09", deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true  }, // 박○○
-    { id: "t-10", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true  }, // LH(임성준)
-    { id: "t-11", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true  }, // LH(우대영)
-    { id: "t-12", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true  }, // LH(유기학)
-    { id: "t-13", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true  }, // LH(양현진)
-    { id: "t-14", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true  }, // LH(조희수)
-    { id: "t-15", deposit:  95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true  }, // 이○○
-    { id: "t-16", deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true  }, // 야○○
+    { id: "t-01", name: "서○○",       deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true },
+    { id: "t-02", name: "노○○",       deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true },
+    { id: "t-03", name: "LH(서진아)", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true },
+    { id: "t-04", name: "나○○",       deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true },
+    { id: "t-05", name: "김○○",       deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true },
+    { id: "t-06", name: "LH(양성경)", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true },
+    { id: "t-07", name: "LH(이예원)", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true },
+    { id: "t-08", name: "박○○",       deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true },
+    { id: "t-09", name: "박○○",       deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true },
+    { id: "t-10", name: "LH(임성준)", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true },
+    { id: "t-11", name: "LH(우대영)", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true },
+    { id: "t-12", name: "LH(유기학)", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true },
+    { id: "t-13", name: "LH(양현진)", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true },
+    { id: "t-14", name: "LH(조희수)", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true },
+    { id: "t-15", name: "이○○",       deposit:  95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true },
+    { id: "t-16", name: "야○○",       deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true },
   ],
 } satisfies ISimulationInput;
 
@@ -169,15 +171,12 @@ const MoneyInput = ({
   placeholder?: string;
   compact?: boolean;
 }) => {
-  const [raw, setRaw] = useState(value ? value.toLocaleString("ko-KR") : "");
+  const [raw, setRaw] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
-  // Sync from parent when not focused
-  useEffect(() => {
-    if (!isFocused) {
-      setRaw(value ? value.toLocaleString("ko-KR") : "");
-    }
-  }, [value, isFocused]);
+  // Derive the displayed value instead of syncing via useEffect:
+  // while focused, show what the user is typing; otherwise reflect the parent value directly.
+  const inputValue = isFocused ? raw : (value ? value.toLocaleString("ko-KR") : "");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.replace(/[^0-9]/g, "");
@@ -194,13 +193,13 @@ const MoneyInput = ({
 
   const handleBlur = () => {
     setIsFocused(false);
-    setRaw(value ? value.toLocaleString("ko-KR") : "");
+    // inputValue will derive from parent value automatically — no setRaw needed
   };
 
   const addAmount = (amount: number) => {
     const next = value + amount;
     onChange(next);
-    if (!isFocused) setRaw(next.toLocaleString("ko-KR"));
+    // inputValue derives from value when not focused — no manual sync needed
   };
 
   return (
@@ -209,7 +208,7 @@ const MoneyInput = ({
         id={id}
         type="text"
         inputMode="numeric"
-        value={raw}
+        value={inputValue}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
@@ -398,7 +397,25 @@ const OtherTenantRow = ({
     <legend className="text-xs font-medium text-sub-text px-1">
       다른 세입자 {index + 1}
     </legend>
-    <div className="grid grid-cols-2 gap-3 mt-2">
+    <div className="mt-2 mb-2">
+      <FieldLabel htmlFor={`ot-name-${tenant.id}`}>이름</FieldLabel>
+      <div className="flex items-center gap-2">
+        <InputField id={`ot-name-${tenant.id}`} type="text"
+          value={tenant.name}
+          onChange={(e) => onChange({ ...tenant, name: e.target.value })}
+          placeholder="홍길동"
+          disabled={tenant.name === "모름"}
+        />
+        <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+          <input type="checkbox"
+            checked={tenant.name === "모름"}
+            onChange={(e) => onChange({ ...tenant, name: e.target.checked ? "모름" : "" })}
+            className="w-4 h-4 accent-accent" />
+          <span className="text-xs text-sub-text">이름 모름</span>
+        </label>
+      </div>
+    </div>
+    <div className="grid grid-cols-2 gap-3">
       <div>
         <FieldLabel htmlFor={`ot-deposit-${tenant.id}`}>보증금</FieldLabel>
         <MoneyInput
@@ -528,6 +545,7 @@ export default function SimulatePage() {
         ...input.otherTenants,
         {
           id: crypto.randomUUID(),
+          name: "",
           deposit: 0,
           opposabilityDate: "",
           hasOccupancy: true,
@@ -889,6 +907,25 @@ export default function SimulatePage() {
 
             <div className="flex flex-col gap-4">
               <div>
+                <FieldLabel htmlFor="myName">이름</FieldLabel>
+                <div className="flex items-center gap-2">
+                  <InputField id="myName" type="text"
+                    value={input.myName}
+                    onChange={(e) => setInput({ myName: e.target.value })}
+                    placeholder="홍길동"
+                    disabled={input.myName === "모름"}
+                  />
+                  <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <input type="checkbox"
+                      checked={input.myName === "모름"}
+                      onChange={(e) => setInput({ myName: e.target.checked ? "모름" : "" })}
+                      className="w-4 h-4 accent-accent" />
+                    <span className="text-xs text-sub-text">이름 모름</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
                 <FieldLabel htmlFor="myDeposit">보증금 (원)</FieldLabel>
                 <MoneyInput
                   id="myDeposit"
@@ -995,6 +1032,25 @@ export default function SimulatePage() {
                     <option value="multi_family">다가구</option>
                     <option value="multi_unit">다세대</option>
                   </select>
+                </div>
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="mortgageName">근저당권자 이름</FieldLabel>
+                <div className="flex items-center gap-2">
+                  <InputField id="mortgageName" type="text"
+                    value={input.mortgageName}
+                    onChange={(e) => setInput({ mortgageName: e.target.value })}
+                    placeholder="예: ○○은행"
+                    disabled={input.mortgageName === "선순위 근저당"}
+                  />
+                  <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <input type="checkbox"
+                      checked={input.mortgageName === "선순위 근저당"}
+                      onChange={(e) => setInput({ mortgageName: e.target.checked ? "선순위 근저당" : "" })}
+                      className="w-4 h-4 accent-accent" />
+                    <span className="text-xs text-sub-text">이름 모름</span>
+                  </label>
                 </div>
               </div>
 

@@ -27,6 +27,7 @@ export interface ISimulationResult {
 
 export interface IOtherTenant {
   id: string;
+  name: string;
   deposit: number;
   opposabilityDate: string; // 대항력 발생일
   hasOccupancy: boolean;
@@ -46,10 +47,12 @@ export interface ISimulationInput {
   executionCost: number;
   appraisalValue: number;
   // Section 2: My Tenant Info
+  myName: string;
   myDeposit: number;
   myOpposabilityDate: string; // 대항력 발생일
   myHasOccupancy: boolean;
   // Section 3: Base Right (선순위 근저당)
+  mortgageName: string;
   mortgagePrincipal: number;
   mortgageMaxClaim: number;
   mortgageRegDate: string;
@@ -76,9 +79,11 @@ const defaultInput: ISimulationInput = {
   salePrice: 200_000_000,
   executionCost: 10_000_000,
   appraisalValue: 0,
+  myName: "",
   myDeposit: 0,
   myOpposabilityDate: "",
   myHasOccupancy: true,
+  mortgageName: "",
   mortgagePrincipal: 0,
   mortgageMaxClaim: 0,
   mortgageRegDate: "",
