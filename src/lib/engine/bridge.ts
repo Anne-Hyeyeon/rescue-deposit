@@ -15,12 +15,12 @@ const mapRegion = (storeRegion: StoreRegion): Region => {
 
 // Map engine step to display category
 const stepToCategory = (step: string, reason: string): string => {
-  if (reason.includes("소액임차인")) return "소액임차인 최우선변제";
+  if (reason.includes("상대적소액")) return "상대적 소액임차인";
+  if (reason.includes("소액임차인")) return "최선순위 소액임차인";
   if (reason.includes("임금")) return "임금채권";
   if (reason.includes("당해세")) return "당해세";
   if (reason.includes("근저당") || reason.includes("전세권") || reason.includes("질권")) return "담보물권";
   if (reason.includes("확정일자")) return "확정일자 임차인";
-  if (reason.includes("상대적소액")) return "상대적 소액임차인";
   if (reason.includes("조세")) return "조세채권";
   if (reason.includes("공과금")) return "공과금";
   if (reason.includes("일반채권")) return "일반채권";
@@ -50,7 +50,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   if (input.mortgageMaxClaim > 0) {
     creditors.push({
       id: "mortgage_1",
-      name: "선순위 근저당",
+      name: input.mortgageName || "선순위 근저당",
       type: "mortgage",
       claimAmount: input.mortgageMaxClaim,
       registrationDate: input.mortgageRegDate,
@@ -62,7 +62,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   if (input.myDeposit > 0 && input.myOpposabilityDate) {
     creditors.push({
       id: "my_tenant",
-      name: "나의 임차권",
+      name: (input.myName && input.myName !== "모름") ? input.myName : "나의 임차권",
       type: "tenant",
       claimAmount: input.myDeposit,
       opposabilityDate: input.myOpposabilityDate,
@@ -73,10 +73,10 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
   // Other tenants
   input.otherTenants
     .filter((ot) => ot.deposit > 0 && ot.opposabilityDate)
-    .forEach((ot) => {
+    .forEach((ot, i) => {
       creditors.push({
         id: ot.id,
-        name: `다른 세입자`,
+        name: (ot.name && ot.name !== "모름") ? ot.name : `다른 세입자 ${i + 1}`,
         type: "tenant",
         claimAmount: ot.deposit,
         opposabilityDate: ot.opposabilityDate,
@@ -97,6 +97,13 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
 
   // Run engine
   const engineResult = calculateDistribution(auctionCase, creditors);
+
+  // Build date lookup: creditorId → key date
+  const dateLookup = new Map<string, string>();
+  creditors.forEach((c) => {
+    const date = c.opposabilityDate ?? c.registrationDate ?? c.legalDate;
+    if (date) dateLookup.set(c.id, date);
+  });
 
   // Convert engine rows to store rows
   const executionRow: IStoreRow = {
@@ -129,6 +136,7 @@ export const runSimulation = (input: ISimulationInput): ISimulationResult => {
       remainingPool: r.remainingAfter,
       isMyTenant: r.creditorId === "my_tenant",
       note: r.reason,
+      keyDate: dateLookup.get(r.creditorId),
     })),
   ];
 
