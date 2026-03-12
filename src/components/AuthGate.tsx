@@ -20,6 +20,10 @@ export function AuthGate({ children, level = "login" }: AuthGateProps) {
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const pathname = usePathname();
+  const description =
+    level === "phone"
+      ? "이 기능은 로그인 후 본인 확인 절차가 추가로 필요합니다."
+      : "이 기능을 이용하려면 로그인하세요.";
 
   if (isLoading) return null;
 
@@ -29,7 +33,7 @@ export function AuthGate({ children, level = "login" }: AuthGateProps) {
       <GateBlock
         icon={<LockIcon size={28} className="text-muted" />}
         title="로그인이 필요합니다"
-        description="이 기능을 이용하려면 로그인하세요."
+        description={description}
         action={
           <Link
             href={`/login?redirect=${encodeURIComponent(pathname)}`}
