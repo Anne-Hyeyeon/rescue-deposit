@@ -1,11 +1,11 @@
 import { calculateDistribution } from "./index";
 import type { IAuctionCase, ICreditor, Region } from "./types";
 import type {
+  IDistributionRow as IStoreRow,
   ISimulationInput,
   ISimulationResult,
-  IDistributionRow as IStoreRow,
   Region as StoreRegion,
-} from "@/store/simulationStore";
+} from "@/types/simulation";
 
 // Map store region to engine region
 const mapRegion = (storeRegion: StoreRegion): Region => {

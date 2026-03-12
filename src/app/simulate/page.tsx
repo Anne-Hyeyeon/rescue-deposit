@@ -5,13 +5,15 @@ import { useState } from "react";
 
 import {
   useSimulationStore,
-  type IOtherTenant,
-  type PropertyTaxOption,
-  type PropertyType,
-  type Region,
-  type ISimulationInput,
 } from "@/store/simulationStore";
 import { runSimulation } from "@/lib/engine/bridge";
+import type {
+  IOtherTenant,
+  ISimulationInput,
+  PropertyTaxOption,
+  PropertyType,
+  Region,
+} from "@/types/simulation";
 
 // ── 데모 데이터: 서울중앙지방법원 2023타경5053 ─────────────────────────────────
 // 엑셀(임차인_대항력_정리.xlsx) 기준. "나" = 김○○ (대항력 2020-08-24, 보증금 1.8억)

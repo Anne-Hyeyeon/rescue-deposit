@@ -75,6 +75,8 @@ export const buildDistributionQueue = (
   region: Region,
   baseRightDate: string
 ): ReadonlyArray<IQueueItem> => {
+  const threshold = getSmallTenantThreshold(region, baseRightDate);
+
   // (1) Mortgage, jeonse, pledge_on_mortgage
   const mortgageItems: ReadonlyArray<IQueueItem> = creditors
     .filter(
@@ -109,7 +111,7 @@ export const buildDistributionQueue = (
       const absoluteDeduction = absoluteSmallIds.has(t.creditor.id)
         ? Math.min(
             t.creditor.deposit!,
-            getSmallTenantThreshold(region, baseRightDate).priorityMax
+            threshold.priorityMax
           )
         : 0;
 
@@ -122,7 +124,9 @@ export const buildDistributionQueue = (
 
       const remainingClaim = baseAmount - absoluteDeduction - relativeDeduction;
 
-      if (remainingClaim <= 0) return null as unknown as IQueueItem;
+      if (remainingClaim <= 0) {
+        return null;
+      }
 
       return {
         creditorId: t.creditor.id,
@@ -134,7 +138,7 @@ export const buildDistributionQueue = (
         reason: `확정일자임차인 (${t.priorityDate})`,
       };
     })
-    .filter((item) => item !== null);
+    .filter((item): item is IQueueItem => item !== null);
 
   // (3) Deferred property tax (has tenants with opposabilityDate before legalDate)
   const deferredTaxItems: ReadonlyArray<IQueueItem> = creditors
