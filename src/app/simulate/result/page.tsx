@@ -5,165 +5,28 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback /*, useRef */ } from "react";
 import {
   useSimulationStore,
-  type IDistributionRow,
-  type ISimulationInput,
-  type IOtherTenant,
 } from "@/store/simulationStore";
+import {
+  buildPlaceholderRows,
+  categoryColors,
+  categoryWrap,
+  formatPercentage,
+  formatResultAmount,
+  formatResultAmountShort,
+} from "@/app/simulate/result/helpers";
 import { runSimulation } from "@/lib/engine/bridge";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const fmt = (n: number) => n.toLocaleString("ko-KR");
-
-const fmtShort = (n: number) => {
-  if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억원`;
-  if (n >= 10_000) return `${Math.round(n / 10_000).toLocaleString("ko-KR")}만원`;
-  return `${n.toLocaleString("ko-KR")}원`;
-};
-
-const pct = (part: number, total: number) =>
-  total === 0 ? "0" : ((part / total) * 100).toFixed(1);
-
-// ── Build placeholder rows from input ────────────────────────────────────────
-
-const buildPlaceholderRows = (input: ISimulationInput): IDistributionRow[] => {
-  const rows: IDistributionRow[] = [];
-
-  // 집행비용
-  rows.push({
-    step: "집행비용",
-    category: "집행비용",
-    creditorId: "execution_cost",
-    creditorName: "집행기관",
-    claimAmount: input.executionCost,
-    distributedAmount: 0,
-    remainingPool: 0,
-    isMyTenant: false,
-  });
-
-  // 소액임차인
-  rows.push({
-    step: "STEP 1",
-    category: "최선순위 소액임차인",
-    creditorId: "my_tenant",
-    creditorName: "나의 임차권",
-    claimAmount: input.myDeposit,
-    distributedAmount: 0,
-    remainingPool: 0,
-    isMyTenant: true,
-    keyDate: input.myOpposabilityDate || undefined,
-    note: "소액임차인 해당 여부는 엔진 계산 필요",
-  });
-
-  input.otherTenants
-    .filter((ot: IOtherTenant) => ot.deposit > 0)
-    .forEach((ot: IOtherTenant, i: number) => {
-      rows.push({
-        step: "STEP 1",
-        category: "최선순위 소액임차인",
-        creditorId: `other_tenant_${i}`,
-        creditorName: `다른 세입자 ${i + 1}`,
-        claimAmount: ot.deposit,
-        distributedAmount: 0,
-        remainingPool: 0,
-        isMyTenant: false,
-        keyDate: ot.opposabilityDate || undefined,
-        note: "소액임차인 해당 여부는 엔진 계산 필요",
-      });
-    });
-
-  // 당해세
-  if (input.propertyTaxOption === "yes" && input.propertyTaxAmount > 0) {
-    rows.push({
-      step: "STEP 2",
-      category: "당해세",
-      creditorId: "property_tax",
-      creditorName: "재산세",
-      claimAmount: input.propertyTaxAmount,
-      distributedAmount: 0,
-      remainingPool: 0,
-      isMyTenant: false,
-      keyDate: input.propertyTaxLegalDate || undefined,
-    });
-  }
-
-  // 날짜 경합
-  if (input.mortgageMaxClaim > 0) {
-    rows.push({
-      step: "STEP 3",
-      category: "근저당권",
-      creditorId: "mortgage_1",
-      creditorName: "선순위 근저당",
-      claimAmount: input.mortgageMaxClaim,
-      distributedAmount: 0,
-      remainingPool: 0,
-      isMyTenant: false,
-      keyDate: input.mortgageRegDate || undefined,
-    });
-  }
-
-  rows.push({
-    step: "STEP 3",
-    category: "확정일자 임차인",
-    creditorId: "my_tenant_step3",
-    creditorName: "나의 임차권",
-    claimAmount: input.myDeposit,
-    distributedAmount: 0,
-    remainingPool: 0,
-    isMyTenant: true,
-    keyDate: input.myOpposabilityDate || undefined,
-  });
-
-  input.otherTenants
-    .filter((ot: IOtherTenant) => ot.deposit > 0 && ot.opposabilityDate)
-    .forEach((ot: IOtherTenant, i: number) => {
-      rows.push({
-        step: "STEP 3",
-        category: "확정일자 임차인",
-        creditorId: `other_tenant_step3_${i}`,
-        creditorName: `다른 세입자 ${i + 1}`,
-        claimAmount: ot.deposit,
-        distributedAmount: 0,
-        remainingPool: 0,
-        isMyTenant: false,
-        keyDate: ot.opposabilityDate || undefined,
-      });
-    });
-
-  return rows;
-};
+import type {
+  IDistributionRow,
+} from "@/types/simulation";
 
 // ── Category badge ────────────────────────────────────────────────────────────
 
-// Notion-style muted category colors
-const CATEGORY_COLORS: Record<string, string> = {
-  "집행비용":           "bg-[#f7f7f5] text-[#787774] dark:bg-[#373737] dark:text-[#9b9b9b]",
-  "최선순위 소액임차인": "bg-[#edf4f8] text-[#2474a0] dark:bg-[#28456c] dark:text-[#9ec5e0]",
-  "상대적 소액임차인":   "bg-[#f3eef7] text-[#6940a5] dark:bg-[#432b6b] dark:text-[#c5aee0]",
-  "당해세":            "bg-[#fdf5e3] text-[#9a6700] dark:bg-[#564328] dark:text-[#e8c469]",
-  "담보물권":           "bg-[#fff0ee] text-[#c4554d] dark:bg-[#6e3b36] dark:text-[#e8a39a]",
-  "확정일자 임차인":     "bg-[#eef6ee] text-[#2b7d2f] dark:bg-[#2b593f] dark:text-[#a5cba5]",
-  "임금채권":           "bg-[#faf0f4] text-[#a84073] dark:bg-[#5a2d48] dark:text-[#dba1be]",
-  "조세채권":           "bg-[#fdf1e4] text-[#b65c1e] dark:bg-[#5c3a1e] dark:text-[#dba67a]",
-  "공과금":            "bg-[#eef4f8] text-[#2878a0] dark:bg-[#243d53] dark:text-[#8fbdd4]",
-  "일반채권":           "bg-[#f3f3f1] text-[#6b6b69] dark:bg-[#3a3a3a] dark:text-[#9b9b9b]",
-  "배당 불가":          "bg-[#f3f3f1] text-[#6b6b69] dark:bg-[#3a3a3a] dark:text-[#9b9b9b]",
-  "근저당권":           "bg-[#fff0ee] text-[#c4554d] dark:bg-[#6e3b36] dark:text-[#e8a39a]",
-};
-
-// Mobile wrap map for long labels
-const CATEGORY_WRAP: Record<string, [string, string]> = {
-  "최선순위 소액임차인": ["최선순위", "소액임차인"],
-  "상대적 소액임차인":   ["상대적", "소액임차인"],
-  "확정일자 임차인":    ["확정일자", "임차인"],
-};
-
 const CategoryBadge = ({ category }: { category: string }) => {
-  const wrap = CATEGORY_WRAP[category];
+  const wrap = categoryWrap[category];
   return (
     <span
       className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-medium leading-tight
-        ${CATEGORY_COLORS[category] ?? "bg-badge-bg text-muted"}`}
+        ${categoryColors[category] ?? "bg-badge-bg text-muted"}`}
     >
       {wrap ? (
         <>
@@ -226,12 +89,12 @@ const TableRow = ({
         {row.keyDate ?? "—"}
       </td>
       <td className="px-2 py-2.5 text-right text-[13px] text-foreground tabular-nums whitespace-nowrap">
-        {isExecution ? "—" : `${fmt(row.claimAmount)}원`}
+        {isExecution ? "—" : `${formatResultAmount(row.claimAmount)}원`}
       </td>
       <td className="px-2 py-2.5 text-right tabular-nums whitespace-nowrap">
         {hasResult ? (
           <span className={`text-[13px] font-semibold ${isHighlight ? "text-accent" : row.distributedAmount > 0 ? "text-foreground" : "text-muted"}`}>
-            {`${fmt(row.distributedAmount)}원`}
+            {`${formatResultAmount(row.distributedAmount)}원`}
           </span>
         ) : (
           <span className="text-xs text-muted italic">계산 전</span>
@@ -239,7 +102,7 @@ const TableRow = ({
       </td>
       <td className="px-2 py-2.5 text-right text-[13px] tabular-nums whitespace-nowrap">
         {hasResult ? (
-          <span className="text-sub-text">{`${fmt(row.remainingPool)}원`}</span>
+          <span className="text-sub-text">{`${formatResultAmount(row.remainingPool)}원`}</span>
         ) : (
           <span className="text-xs text-muted italic">—</span>
         )}
@@ -263,10 +126,10 @@ const Hero = ({
     {hasResult ? (
       <div className="text-white">
         <p className="text-sm font-medium opacity-80 mb-1">예상 배당액</p>
-        <p className="text-4xl font-bold tracking-tight">{fmtShort(myAmount)}</p>
+        <p className="text-4xl font-bold tracking-tight">{formatResultAmountShort(myAmount)}</p>
         <div className="mt-3 flex items-center gap-3 text-sm opacity-90">
-          <span>보증금 {fmtShort(myDeposit)} 중 회수율</span>
-          <span className="text-xl font-bold">{pct(myAmount, myDeposit)}%</span>
+          <span>보증금 {formatResultAmountShort(myDeposit)} 중 회수율</span>
+          <span className="text-xl font-bold">{formatPercentage(myAmount, myDeposit)}%</span>
         </div>
       </div>
     ) : (
@@ -408,7 +271,7 @@ const SalePriceAdjuster = ({
           </svg>
         </button>
         <div className="text-center">
-          <p className="text-2xl font-bold text-accent tabular-nums">{fmtShort(salePrice)}</p>
+          <p className="text-2xl font-bold text-accent tabular-nums">{formatResultAmountShort(salePrice)}</p>
           {currentRate && (
             <p className="text-xs text-sub-text mt-0.5">
               감정가 대비 <span className="font-semibold text-foreground">{currentRate}%</span>
@@ -433,7 +296,7 @@ const SalePriceAdjuster = ({
       {hasAppraisal && (
         <div>
           <p className="text-xs text-sub-text text-center mb-2">
-            감정가 <span className="font-medium text-foreground">{fmtShort(appraisalValue)}</span>
+            감정가 <span className="font-medium text-foreground">{formatResultAmountShort(appraisalValue)}</span>
           </p>
           <div className="flex gap-2 justify-center">
             {RATE_BUTTONS.map((rate) => {
@@ -486,7 +349,7 @@ const generateCoachSteps = (
   // Step 0: Overview
   steps.push({
     title: "배당표를 읽어볼게요",
-    description: `매각대금 ${fmtShort(salePrice)}에서 집행비용 ${fmtShort(executionCost)}을 먼저 공제하면, 실제로 채권자들에게 나눠줄 수 있는 돈(배당가능액)은 ${fmtShort(distributable)}입니다. 이제 법이 정한 순서대로 하나씩 배분해 볼게요.`,
+    description: `매각대금 ${formatResultAmountShort(salePrice)}에서 집행비용 ${formatResultAmountShort(executionCost)}을 먼저 공제하면, 실제로 채권자들에게 나눠줄 수 있는 돈(배당가능액)은 ${formatResultAmountShort(distributable)}입니다. 이제 법이 정한 순서대로 하나씩 배분해 볼게요.`,
     rowIndices: [],
   });
 
@@ -512,7 +375,7 @@ const generateCoachSteps = (
       case "집행비용":
         steps.push({
           title: "1단계: 집행비용 공제",
-          description: `경매를 진행하는 데 드는 비용(법원 수수료, 감정비 등) ${fmtShort(groupRows[0].claimAmount)}이 가장 먼저 빠집니다. 이건 모든 채권자보다 우선합니다.`,
+          description: `경매를 진행하는 데 드는 비용(법원 수수료, 감정비 등) ${formatResultAmountShort(groupRows[0].claimAmount)}이 가장 먼저 빠집니다. 이건 모든 채권자보다 우선합니다.`,
           rowIndices: group.indices,
         });
         break;
@@ -522,7 +385,7 @@ const generateCoachSteps = (
         const myRow = groupRows.find((r) => r.isMyTenant);
         let desc = `소액보증금에 해당하는 세입자 ${count}명이 최우선변제를 받습니다. 이들은 근저당보다 먼저 배당받을 수 있는 특별한 보호를 받아요.`;
         if (myRow) {
-          desc += ` 당신도 여기에 해당하여 ${fmtShort(myRow.distributedAmount)}을 최우선으로 받습니다.`;
+          desc += ` 당신도 여기에 해당하여 ${formatResultAmountShort(myRow.distributedAmount)}을 최우선으로 받습니다.`;
         }
         if (count > 1) {
           const allFull = groupRows.every((r) => r.distributedAmount >= r.claimAmount);
@@ -543,7 +406,7 @@ const generateCoachSteps = (
         let desc = `상대적 소액임차인 ${count}명이 배당받습니다. 먼저 최선순위 근저당 설정일 기준으로 절대적 소액임차인(최우선변제 대상)을 걸러내고, 남은 후순위 임차인들을 대상으로 이후 시행령 개정 구간을 하나씩 순회합니다. 각 구간에서 기준금액(보증금 한도) 이하인 임차인이 걸리면, 해당 구간의 우선변제금만큼 먼저 배당받습니다. 분류된 임차인은 다음 구간에서 제외하고, 다음 구간으로 넘어가면 기준금액이 올라가므로 새로 걸리는 임차인이 생깁니다.`;
         const myRow = groupRows.find((r) => r.isMyTenant);
         if (myRow) {
-          desc += ` 당신도 여기에 해당하여 ${fmtShort(myRow.distributedAmount)}을 배당받습니다.`;
+          desc += ` 당신도 여기에 해당하여 ${formatResultAmountShort(myRow.distributedAmount)}을 배당받습니다.`;
         }
         if (count > 1) {
           const allFull = groupRows.every((r) => r.distributedAmount >= r.claimAmount);
@@ -562,7 +425,7 @@ const generateCoachSteps = (
       case "당해세":
         steps.push({
           title: "당해세 배당",
-          description: `해당 부동산에 부과된 재산세(당해세) ${fmtShort(totalClaim)}이 배당됩니다. 당해세는 근저당에 우선하는 강력한 조세채권이에요.`,
+          description: `해당 부동산에 부과된 재산세(당해세) ${formatResultAmountShort(totalClaim)}이 배당됩니다. 당해세는 근저당에 우선하는 강력한 조세채권이에요.`,
           rowIndices: group.indices,
         });
         break;
@@ -571,7 +434,7 @@ const generateCoachSteps = (
       case "근저당권":
         steps.push({
           title: "담보물권(근저당) 배당",
-          description: `근저당권자 ${names}에게 채권최고액 ${fmtShort(totalClaim)} 중 ${fmtShort(totalDist)}이 배당됩니다. 근저당은 설정일 기준으로 임차인과 순위를 다툽니다.`,
+          description: `근저당권자 ${names}에게 채권최고액 ${formatResultAmountShort(totalClaim)} 중 ${formatResultAmountShort(totalDist)}이 배당됩니다. 근저당은 설정일 기준으로 임차인과 순위를 다툽니다.`,
           rowIndices: group.indices,
         });
         break;
@@ -582,7 +445,7 @@ const generateCoachSteps = (
         let desc = `확정일자를 갖춘 임차인 ${count}명이 날짜 순서대로 배당받습니다. 근저당 설정일보다 늦은 확정일자 임차인은 근저당 뒤 순서가 됩니다.`;
         if (myRow) {
           if (myRow.distributedAmount > 0) {
-            desc += ` 당신은 여기서 ${fmtShort(myRow.distributedAmount)}을 추가로 배당받습니다.`;
+            desc += ` 당신은 여기서 ${formatResultAmountShort(myRow.distributedAmount)}을 추가로 배당받습니다.`;
           } else {
             desc += " 안타깝지만, 이 단계에서 남은 배당가능액이 부족하여 추가 배당을 받지 못합니다.";
           }
@@ -598,7 +461,7 @@ const generateCoachSteps = (
       case "임금채권":
         steps.push({
           title: "임금채권 배당",
-          description: `근로자의 임금채권 ${fmtShort(totalClaim)}이 배당됩니다.`,
+          description: `근로자의 임금채권 ${formatResultAmountShort(totalClaim)}이 배당됩니다.`,
           rowIndices: group.indices,
         });
         break;
@@ -606,7 +469,7 @@ const generateCoachSteps = (
       case "조세채권":
         steps.push({
           title: "조세채권 배당",
-          description: `국세·지방세 등 조세채권 ${fmtShort(totalClaim)}이 배당됩니다.`,
+          description: `국세·지방세 등 조세채권 ${formatResultAmountShort(totalClaim)}이 배당됩니다.`,
           rowIndices: group.indices,
         });
         break;
@@ -614,7 +477,7 @@ const generateCoachSteps = (
       case "일반채권":
         steps.push({
           title: "일반채권 배당",
-          description: `담보 없는 일반채권 ${fmtShort(totalClaim)}이 배당됩니다. 우선순위가 가장 낮아 남은 금액에서만 배당받을 수 있습니다.`,
+          description: `담보 없는 일반채권 ${formatResultAmountShort(totalClaim)}이 배당됩니다. 우선순위가 가장 낮아 남은 금액에서만 배당받을 수 있습니다.`,
           rowIndices: group.indices,
         });
         break;
@@ -630,7 +493,7 @@ const generateCoachSteps = (
       default:
         steps.push({
           title: group.category,
-          description: `${names}에게 ${fmtShort(totalDist)}이 배당됩니다.`,
+          description: `${names}에게 ${formatResultAmountShort(totalDist)}이 배당됩니다.`,
           rowIndices: group.indices,
         });
     }
@@ -639,9 +502,9 @@ const generateCoachSteps = (
   // Final summary
   const recoveryRate = myDeposit > 0 ? ((myAmount / myDeposit) * 100).toFixed(1) : "0";
   const loss = myDeposit - myAmount;
-  let finalDesc = `최종 결과, 보증금 ${fmtShort(myDeposit)} 중 ${fmtShort(myAmount)}을 돌려받을 수 있을 것으로 예상됩니다. 회수율은 ${recoveryRate}%입니다.`;
+  let finalDesc = `최종 결과, 보증금 ${formatResultAmountShort(myDeposit)} 중 ${formatResultAmountShort(myAmount)}을 돌려받을 수 있을 것으로 예상됩니다. 회수율은 ${recoveryRate}%입니다.`;
   if (loss > 0) {
-    finalDesc += ` 미회수 금액 ${fmtShort(loss)}에 대해서는 배당요구 신청, 임차권등기명령 등 추가 조치를 검토해 보세요.`;
+    finalDesc += ` 미회수 금액 ${formatResultAmountShort(loss)}에 대해서는 배당요구 신청, 임차권등기명령 등 추가 조치를 검토해 보세요.`;
   } else {
     finalDesc += " 보증금 전액 회수가 가능한 상황입니다!";
   }
@@ -893,9 +756,9 @@ export default function SimulateResultPage() {
                 <h2 className="text-sm font-semibold text-foreground">배당 순서표</h2>
                 <p className="text-xs text-sub-text mt-0.5">
                   집행비용부터 배당 순서대로 • 매각대금{" "}
-                  <span className="font-medium text-foreground">{fmtShort(input.salePrice)}</span>
+                  <span className="font-medium text-foreground">{formatResultAmountShort(input.salePrice)}</span>
                   {" "}→ 배당가능액{" "}
-                  <span className="font-medium text-foreground">{fmtShort(input.salePrice - input.executionCost)}</span>
+                  <span className="font-medium text-foreground">{formatResultAmountShort(input.salePrice - input.executionCost)}</span>
                 </p>
               </div>
               {/* AI 해설 보기 버튼 (temporarily disabled)
@@ -947,7 +810,7 @@ export default function SimulateResultPage() {
             <div className="px-5 py-3 border-t border-divider bg-badge-bg/40 flex items-center justify-between">
               <span className="text-xs text-sub-text">최종 잔여금 (소유자 반환)</span>
               <span className="text-sm font-semibold text-foreground tabular-nums">
-                {fmt(remainingBalance)}원
+                {formatResultAmount(remainingBalance)}원
               </span>
             </div>
           )}
