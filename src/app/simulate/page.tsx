@@ -6,79 +6,26 @@ import { useState } from "react";
 import {
   useSimulationStore,
 } from "@/store/simulationStore";
+import {
+  calcSalePriceFromRate,
+  createEmptyOtherTenant,
+  DEMO_SIMULATION_ADDRESS,
+  DEMO_SIMULATION_INPUT,
+  formatKRW,
+  parsePropertyType,
+  parseRegion,
+  REGION_LABELS,
+  removeOtherTenantById,
+  type BidRateOption,
+  type SimulationFormErrors,
+  upsertOtherTenant,
+  validateSimulationInput,
+} from "@/app/simulate/helpers";
 import { runSimulation } from "@/lib/engine/bridge";
 import type {
   IOtherTenant,
-  ISimulationInput,
   PropertyTaxOption,
-  PropertyType,
-  Region,
 } from "@/types/simulation";
-
-// ── 데모 데이터: 서울중앙지방법원 2023타경5053 ─────────────────────────────────
-// 엑셀(임차인_대항력_정리.xlsx) 기준. "나" = 김○○ (대항력 2020-08-24, 보증금 1.8억)
-// 최선순위 근저당 2017.12.04, 매각대금 1,784,756,000
-
-const DEMO_2023TA5053 = {
-  salePrice:     1_784_756_000,
-  executionCost:     9_811_568,
-  appraisalValue: 2_230_942_880,
-
-  // 나의 임차권: 김○○
-  myName:               "김○○",
-  myDeposit:            160_000_000,
-  myOpposabilityDate:   "2020-08-24", // 대항력 발생일
-  myHasOccupancy:       true,
-
-  // 선순위 근저당 — 웰컴저축은행 근저당권부질권
-  mortgageName:      "웰컴저축은행",
-  mortgagePrincipal: 784_560_000,
-  mortgageMaxClaim:  784_560_000,
-  mortgageRegDate:   "2017-12-04",
-
-  propertyType: "multi_family" as const,
-  region: "seoul" as const,
-
-  propertyTaxOption: "no" as const,
-  propertyTaxAmount: 0,
-  propertyTaxLegalDate: "",
-
-  // 다른 세입자 16명 (대항력 발생일 순)
-  otherTenants: [
-    { id: "t-01", name: "서○○",       deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true },
-    { id: "t-02", name: "노○○",       deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true },
-    { id: "t-03", name: "LH(서진아)", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true },
-    { id: "t-04", name: "나○○",       deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true },
-    { id: "t-05", name: "김○○",       deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true },
-    { id: "t-06", name: "LH(양성경)", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true },
-    { id: "t-07", name: "LH(이예원)", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true },
-    { id: "t-08", name: "박○○",       deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true },
-    { id: "t-09", name: "박○○",       deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true },
-    { id: "t-10", name: "LH(임성준)", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true },
-    { id: "t-11", name: "LH(우대영)", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true },
-    { id: "t-12", name: "LH(유기학)", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true },
-    { id: "t-13", name: "LH(양현진)", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true },
-    { id: "t-14", name: "LH(조희수)", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true },
-    { id: "t-15", name: "이○○",       deposit:  95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true },
-    { id: "t-16", name: "야○○",       deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true },
-  ],
-} satisfies ISimulationInput;
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const formatKRW = (n: number) =>
-  n >= 100_000_000
-    ? `${(n / 100_000_000).toFixed(1)}억`
-    : n >= 10_000
-    ? `${Math.round(n / 10_000).toLocaleString("ko-KR")}만원`
-    : `${n.toLocaleString("ko-KR")}원`;
-
-const REGION_LABELS: Record<Region, string> = {
-  seoul: "서울특별시",
-  metropolitan_overcrowded: "수도권 과밀억제권역",
-  metropolitan: "광역시 등",
-  others: "그 밖의 지역",
-};
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -503,10 +450,9 @@ export default function SimulatePage() {
   const { input, setInput, setResult } = useSimulationStore();
 
   const [address, setAddress] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<SimulationFormErrors>({});
 
   // Section 1 state
-  type BidRateOption = "none" | "100" | "90" | "86" | "80" | "custom";
   const [appraisalMode, setAppraisalMode] = useState<"known" | "unknown">("known");
   const [appraisalValue, setAppraisalValue] = useState(0);
   const [isSold, setIsSold] = useState(false);
@@ -514,8 +460,8 @@ export default function SimulatePage() {
   const [customBidRate, setCustomBidRate] = useState(85);
 
   const loadDemo = () => {
-    setInput(DEMO_2023TA5053);
-    setAddress("서울시 동작구 대방동 393-57");
+    setInput(DEMO_SIMULATION_INPUT);
+    setAddress(DEMO_SIMULATION_ADDRESS);
     setAppraisalMode("known");
     setAppraisalValue(2_230_942_880);
     setIsSold(true);
@@ -523,21 +469,17 @@ export default function SimulatePage() {
     setErrors({});
   };
 
-  // Calculate sale price from base amount + bid rate
-  const calcFromRate = (base: number, rate: number) =>
-    base > 0 && rate > 0 ? Math.round(base * (rate / 100)) : 0;
-
   const handleBidRateSelect = (option: BidRateOption, base: number) => {
     setBidRateOption(option);
     if (option === "none") return;
     const rate = option === "custom" ? customBidRate : Number(option);
-    const v = calcFromRate(base, rate);
+    const v = calcSalePriceFromRate(base, rate);
     if (v > 0) setInput({ salePrice: v });
   };
 
   const handleCustomRateInput = (rate: number, base: number) => {
     setCustomBidRate(rate);
-    const v = calcFromRate(base, rate);
+    const v = calcSalePriceFromRate(base, rate);
     if (v > 0) setInput({ salePrice: v });
   };
 
@@ -545,32 +487,21 @@ export default function SimulatePage() {
     setInput({
       otherTenants: [
         ...input.otherTenants,
-        {
-          id: crypto.randomUUID(),
-          name: "",
-          deposit: 0,
-          opposabilityDate: "",
-          hasOccupancy: true,
-        },
+        createEmptyOtherTenant(),
       ],
     });
   };
 
   const updateOtherTenant = (id: string, t: IOtherTenant) => {
-    setInput({ otherTenants: input.otherTenants.map((ot) => (ot.id === id ? t : ot)) });
+    setInput({ otherTenants: upsertOtherTenant(input.otherTenants, id, t) });
   };
 
   const removeOtherTenant = (id: string) => {
-    setInput({ otherTenants: input.otherTenants.filter((ot) => ot.id !== id) });
+    setInput({ otherTenants: removeOtherTenantById(input.otherTenants, id) });
   };
 
   const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!input.salePrice || input.salePrice <= 0) errs.salePrice = "매각대금을 입력해주세요";
-    if (!input.myDeposit || input.myDeposit <= 0) errs.myDeposit = "보증금을 입력해주세요";
-    if (!input.myOpposabilityDate) errs.myOpposabilityDate = "대항력 발생일을 입력해주세요";
-    if (!input.mortgageRegDate) errs.mortgageRegDate = "근저당 설정일을 입력해주세요";
-    if (!input.mortgageMaxClaim || input.mortgageMaxClaim <= 0) errs.mortgageMaxClaim = "채권최고액을 입력해주세요";
+    const errs = validateSimulationInput(input);
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -1016,7 +947,11 @@ export default function SimulatePage() {
                 <div>
                   <FieldLabel htmlFor="region">지역 (직접 선택)</FieldLabel>
                   <select id="region" value={input.region}
-                    onChange={(e) => setInput({ region: e.target.value as Region })}
+                    onChange={(e) => {
+                      const nextRegion = parseRegion(e.target.value);
+                      if (!nextRegion) return;
+                      setInput({ region: nextRegion });
+                    }}
                     className="w-full px-3 py-2.5 rounded-xl border border-card-border bg-background text-foreground text-sm
                       focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors duration-150">
                     <option value="seoul">서울특별시</option>
@@ -1028,7 +963,11 @@ export default function SimulatePage() {
                 <div>
                   <FieldLabel htmlFor="propertyType">주택 유형</FieldLabel>
                   <select id="propertyType" value={input.propertyType}
-                    onChange={(e) => setInput({ propertyType: e.target.value as PropertyType })}
+                    onChange={(e) => {
+                      const nextPropertyType = parsePropertyType(e.target.value);
+                      if (!nextPropertyType) return;
+                      setInput({ propertyType: nextPropertyType });
+                    }}
                     className="w-full px-3 py-2.5 rounded-xl border border-card-border bg-background text-foreground text-sm
                       focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors duration-150">
                     <option value="multi_family">다가구</option>
