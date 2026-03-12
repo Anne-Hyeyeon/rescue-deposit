@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { calculateDistribution } from "../index";
-import type { IAuctionCase, ICreditor, Region } from "../types";
+import type { IAuctionCase, ICreditor } from "../types";
 
 // Helper: convert moveInDate + confirmedDate to opposabilityDate
 // opposabilityDate = max(moveInDate + 1 day, confirmedDate)
@@ -16,7 +15,7 @@ describe("Test 1: Basic — senior tenant full distribution", () => {
     salePrice: 500_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 8_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2020-06-01",
   };
 
@@ -60,7 +59,7 @@ describe("Test 2: Junior tenant — partial distribution", () => {
     salePrice: 400_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 9_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2019-05-10",
   };
 
@@ -117,7 +116,7 @@ describe("Test 3: Small tenant — absolute priority", () => {
     salePrice: 300_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 7_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2022-01-15",
   };
 
@@ -166,7 +165,7 @@ describe("Test 4: Multiple small tenants — 1/2 limit exceeded", () => {
     salePrice: 200_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 6_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2023-06-01",
   };
 
@@ -306,7 +305,7 @@ describe("Test 7: Property tax — 2023.04.01 reform", () => {
     salePrice: 600_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 10_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2020-03-01",
   };
 
@@ -361,7 +360,7 @@ describe("Test 8: Subrogation — insurance company", () => {
     salePrice: 500_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 9_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2019-08-01",
   };
 
@@ -415,7 +414,7 @@ describe("Test 9: Different moveIn and confirmedDate", () => {
     salePrice: 400_000_000,
     saleInterest: 0, delayInterest: 0, priorDeposit: 0, appealDeposit: 0,
     executionCost: 8_000_000,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2020-06-01",
   };
 
@@ -483,7 +482,7 @@ describe("Test 10: Real case — 2023타경5053", () => {
     priorDeposit: 0,
     appealDeposit: 0,
     executionCost: 9_811_568,
-    region: "seoul" as Region,
+    region: "seoul",
     baseRightDate: "2017-12-04",
   };
 
