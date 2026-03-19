@@ -38,7 +38,10 @@ yarn-error.log*
 
 # Claude Code / AI tooling
 .claude/
+claude/
 .agents/
+CLAUDE.md
+agent.md
 skills-lock.json
 
 # docs

@@ -496,19 +496,19 @@ describe("Test 10: Real case — 2023타경5053", () => {
     // 17 tenants (opposabilityDate directly provided)
     { id: "t01", name: "서○○", type: "tenant", claimAmount: 150_000_000, opposabilityDate: "2019-12-02", deposit: 150_000_000 },
     { id: "t02", name: "노○○", type: "tenant", claimAmount: 300_000_000, opposabilityDate: "2019-12-27", deposit: 300_000_000 },
-    { id: "t03", name: "LH(서진아)", type: "tenant", claimAmount: 110_000_000, opposabilityDate: "2020-01-07", deposit: 110_000_000 },
+    { id: "t03", name: "LH(서○○)", type: "tenant", claimAmount: 110_000_000, opposabilityDate: "2020-01-07", deposit: 110_000_000 },
     { id: "t04", name: "김○○", type: "tenant", claimAmount: 160_000_000, opposabilityDate: "2020-08-24", deposit: 160_000_000 },
     { id: "t05", name: "나○○", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2021-01-13", deposit: 100_000_000 },
     { id: "t06", name: "김○○", type: "tenant", claimAmount: 150_000_000, opposabilityDate: "2021-06-04", deposit: 150_000_000 },
-    { id: "t07", name: "LH(양성경)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-08-13", deposit: 120_000_000 },
-    { id: "t08", name: "LH(이예원)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-08-23", deposit: 120_000_000 },
+    { id: "t07", name: "LH(양○○)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-08-13", deposit: 120_000_000 },
+    { id: "t08", name: "LH(이○○)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-08-23", deposit: 120_000_000 },
     { id: "t09", name: "박○○", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-12-29", deposit: 120_000_000 },
     { id: "t10", name: "박○○", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2021-12-31", deposit: 120_000_000 },
-    { id: "t11", name: "LH(임성준)", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2022-02-08", deposit: 100_000_000 },
-    { id: "t12", name: "LH(우대영)", type: "tenant", claimAmount: 130_000_000, opposabilityDate: "2022-02-16", deposit: 130_000_000 },
-    { id: "t13", name: "LH(유기학)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2022-04-21", deposit: 120_000_000 },
-    { id: "t14", name: "LH(양현진)", type: "tenant", claimAmount: 110_000_000, opposabilityDate: "2022-05-25", deposit: 110_000_000 },
-    { id: "t15", name: "LH(조희수)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2022-07-01", deposit: 120_000_000 },
+    { id: "t11", name: "LH(임○○)", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2022-02-08", deposit: 100_000_000 },
+    { id: "t12", name: "LH(우○○)", type: "tenant", claimAmount: 130_000_000, opposabilityDate: "2022-02-16", deposit: 130_000_000 },
+    { id: "t13", name: "LH(유○○)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2022-04-21", deposit: 120_000_000 },
+    { id: "t14", name: "LH(양○○)", type: "tenant", claimAmount: 110_000_000, opposabilityDate: "2022-05-25", deposit: 110_000_000 },
+    { id: "t15", name: "LH(조○○)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2022-07-01", deposit: 120_000_000 },
     { id: "t16", name: "이○○", type: "tenant", claimAmount: 95_000_000, opposabilityDate: "2022-09-08", deposit: 95_000_000 },
     { id: "t17", name: "야○○", type: "tenant", claimAmount: 130_000_000, opposabilityDate: "2022-09-26", deposit: 130_000_000 },
   ];
@@ -541,7 +541,7 @@ describe("Test 10: Real case — 2023타경5053", () => {
   it("should identify 11 relative small tenants (2 from 2018 period, 9 from 2021 period)", () => {
     const result = calculateDistribution(auctionCase, creditors);
 
-    // Period 2018 (depositMax=110M): t03(LH서진아,110M), t14(LH양현진,110M) → priority 37M
+    // Period 2018 (depositMax=110M): t03(LH서○○,110M), t14(LH양○○,110M) → priority 37M
     // Period 2021 (depositMax=150M, 대항력≥2021-05-11만): t06,t07,t08,t09,t10,t12,t13,t15,t17 → priority 50M
     // t01(서○○) 대항력 2019-12-02 < 2021-05-11 → 구간② 대상 아님
     const relativeSmallIds = ["t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
