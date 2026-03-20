@@ -542,8 +542,8 @@ describe("Test 10: Real case — 2023타경5053", () => {
     const result = calculateDistribution(auctionCase, creditors);
 
     // Period 2018 (depositMax=110M): t03(LH서○○,110M), t14(LH양○○,110M) → priority 37M
-    // Period 2021 (depositMax=150M, 대항력≥2021-05-11만): t06,t07,t08,t09,t10,t12,t13,t15,t17 → priority 50M
-    // t01(서○○) 대항력 2019-12-02 < 2021-05-11 → 구간② 대상 아님
+    // Period 2021 (depositMax=150M): t06,t07,t08,t09,t10,t12,t13,t15,t17 → priority 50M
+    // t01(서○○) 대항력 2019-12-02는 구간⑥(2021-05-11)보다 앞이므로 이미 배당 순서가 지남 → 상대적 소액 아님
     const relativeSmallIds = ["t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
 
     const rsRows = result.rows.filter((r) => r.reason.includes("상대적소액임차인"));
@@ -559,7 +559,9 @@ describe("Test 10: Real case — 2023타경5053", () => {
     });
 
     // Period 2021 relative smalls: priority 50M
-    const period2021Rs = rsRows.filter((r) => r.creditorId !== "t03" && r.creditorId !== "t14");
+    const period2021Rs = rsRows.filter((r) =>
+      r.creditorId !== "t03" && r.creditorId !== "t14"
+    );
     period2021Rs.forEach((r) => {
       expect(r.claimAmount).toBe(50_000_000);
     });
@@ -568,7 +570,8 @@ describe("Test 10: Real case — 2023타경5053", () => {
   it("should identify 3 non-small tenants", () => {
     const result = calculateDistribution(auctionCase, creditors);
 
-    // t01(서○○,150M) 대항력 2019-12-02 < 구간② 시작 2021-05-11 → 비소액
+    // t01(서○○,150M) → 배당 순서가 구간⑥보다 앞이므로 상대적 소액 아님 → 비소액
+    // t02(노○○,300M), t04(김○○,160M) → 어느 구간에서도 depositMax 초과 → 비소액
     const nonSmallIds = ["t01", "t02", "t04"];
 
     // Non-small tenants should appear in STEP3 only (확정일자 or 잔여액 부족)
@@ -608,7 +611,7 @@ describe("Test 10: Real case — 2023타경5053", () => {
       expect(totalClaim).toBe(tenant.claimAmount);
     });
 
-    // Relative small tenants with remaining claim in STEP3 (t01 is non-small now)
+    // Relative small tenants with remaining claim in STEP3
     const relativeSmallIds = ["t03", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t17"];
     relativeSmallIds.forEach((id) => {
       const rows = result.rows.filter((r) => r.creditorId === id);
@@ -641,6 +644,94 @@ describe("Test 10: Real case — 2023타경5053", () => {
           result.rows[i - 1].remainingAfter - row.distributionAmount
         );
       }
+    });
+  });
+});
+
+describe("Test 11: Real case — 2025타경 케이스3 (19 tenants + mortgage)", () => {
+  const auctionCase: IAuctionCase = {
+    salePrice: 1_732_770_000,
+    saleInterest: 0,
+    delayInterest: 0,
+    priorDeposit: 0,
+    appealDeposit: 0,
+    executionCost: 0,
+    region: "seoul",
+    baseRightDate: "2017-09-15",
+  };
+
+  const creditors: ReadonlyArray<ICreditor> = [
+    // 근저당 (2017-09-15 설정)
+    {
+      id: "mortgage", name: "근저당권자", type: "mortgage",
+      claimAmount: 900_000_000,
+      registrationDate: "2017-09-15",
+      maxClaimAmount: 900_000_000,
+    },
+    // 19 tenants sorted by 대항력 발생일
+    { id: "t01", name: "정○○(202)", type: "tenant", claimAmount: 110_000_000, opposabilityDate: "2017-09-20", deposit: 110_000_000 },
+    { id: "t02", name: "안○○(103)", type: "tenant", claimAmount: 85_000_000, opposabilityDate: "2019-08-27", deposit: 85_000_000 },
+    { id: "t03", name: "이○○(403)", type: "tenant", claimAmount: 135_000_000, opposabilityDate: "2019-10-23", deposit: 135_000_000 },
+    { id: "t04", name: "김○○(402)", type: "tenant", claimAmount: 140_000_000, opposabilityDate: "2019-11-25", deposit: 140_000_000 },
+    { id: "t05", name: "양○○(502)", type: "tenant", claimAmount: 150_000_000, opposabilityDate: "2020-02-07", deposit: 150_000_000 },
+    { id: "t06", name: "송○○(501)", type: "tenant", claimAmount: 140_000_000, opposabilityDate: "2020-06-02", deposit: 140_000_000 },
+    { id: "t07", name: "정○○(404)", type: "tenant", claimAmount: 140_000_000, opposabilityDate: "2021-12-31", deposit: 140_000_000 },
+    { id: "t08", name: "이○○(203)", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2022-03-24", deposit: 100_000_000 },
+    { id: "t09", name: "박○○(602)", type: "tenant", claimAmount: 40_000_000, opposabilityDate: "2022-04-14", deposit: 40_000_000 },
+    { id: "t10", name: "김○○(401)", type: "tenant", claimAmount: 150_000_000, opposabilityDate: "2022-05-02", deposit: 150_000_000 },
+    { id: "t11", name: "안○○(101)", type: "tenant", claimAmount: 170_000_000, opposabilityDate: "2022-06-28", deposit: 170_000_000 },
+    { id: "t12", name: "송○○(104)", type: "tenant", claimAmount: 50_000_000, opposabilityDate: "2022-07-04", deposit: 50_000_000 },
+    { id: "t13", name: "김○○(601)", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2023-05-26", deposit: 100_000_000 },
+    { id: "t14", name: "정○○(303)", type: "tenant", claimAmount: 130_000_000, opposabilityDate: "2023-09-25", deposit: 130_000_000 },
+    { id: "t15", name: "서○○(304)", type: "tenant", claimAmount: 120_000_000, opposabilityDate: "2023-10-04", deposit: 120_000_000 },
+    { id: "t16", name: "박○○(201)", type: "tenant", claimAmount: 50_000_000, opposabilityDate: "2023-10-10", deposit: 50_000_000 },
+    { id: "t17", name: "조○○(302)", type: "tenant", claimAmount: 135_000_000, opposabilityDate: "2023-10-25", deposit: 135_000_000 },
+    { id: "t18", name: "윤○○(301)", type: "tenant", claimAmount: 140_000_000, opposabilityDate: "2023-11-14", deposit: 140_000_000 },
+    { id: "t19", name: "한○○(204)", type: "tenant", claimAmount: 100_000_000, opposabilityDate: "2024-11-13", deposit: 100_000_000 },
+    // 송○○(102): 보증금 2,700,000, 대항력 발생일 없음
+    { id: "t20", name: "송○○(102)", type: "tenant", claimAmount: 2_700_000, deposit: 2_700_000 },
+  ];
+
+  it("should calculate basic values correctly", () => {
+    const result = calculateDistribution(auctionCase, creditors);
+
+    // totalFund = salePrice = 1,732,770,000 (no interest/deposits)
+    // distributableFund = totalFund - executionCost = 1,732,770,000
+    expect(result.distributableFund).toBe(1_732_770_000);
+  });
+
+  it("should have total distribution equal to distributableFund - remainder", () => {
+    const result = calculateDistribution(auctionCase, creditors);
+
+    const totalDistributed = result.rows.reduce(
+      (sum, r) => sum + r.distributionAmount, 0
+    );
+    expect(totalDistributed).toBe(result.distributableFund - result.remainder);
+  });
+
+  it("should have consistent remainingAfter chain within each step", () => {
+    const result = calculateDistribution(auctionCase, creditors);
+
+    result.rows.forEach((row, i) => {
+      if (i > 0 && result.rows[i - 1].step === row.step) {
+        expect(row.remainingAfter).toBe(
+          result.rows[i - 1].remainingAfter - row.distributionAmount
+        );
+      }
+    });
+  });
+
+  it("should not distribute more than claim amount per creditor", () => {
+    const result = calculateDistribution(auctionCase, creditors);
+
+    const byCreditor = new Map<string, number>();
+    result.rows.forEach((r) => {
+      byCreditor.set(r.creditorId, (byCreditor.get(r.creditorId) ?? 0) + r.distributionAmount);
+    });
+
+    byCreditor.forEach((total, id) => {
+      const creditor = creditors.find((c) => c.id === id)!;
+      expect(total).toBeLessThanOrEqual(creditor.claimAmount);
     });
   });
 });

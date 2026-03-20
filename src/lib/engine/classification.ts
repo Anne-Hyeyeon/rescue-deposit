@@ -39,68 +39,58 @@ export const identifyRelativeSmallTenants = (
   region: Region,
   baseRightDate: string
 ): IRelativeSmallResult => {
-  // 절대적 소액임차인을 제외한, 근저당 이후(후순위) 보증금 있는 임차인
-  // 선순위 임차인(대항력 발생일 < baseRightDate)은 이미 근저당보다 앞서므로 대상 아님
+  // 모든 임차인을 대항력 발생일 순으로 정렬 → 구간 변경 트리거로 사용
+  const sortedTenants = [...tenants]
+    .filter((t) => t.opposabilityDate)
+    .sort((a, b) => a.opposabilityDate.localeCompare(b.opposabilityDate));
+
+  // 분류 대상: 절대적 소액이 아닌, 근저당 후순위, 보증금 있는 임차인
   const candidates = tenants
     .filter((t) => !absoluteSmallIds.has(t.creditor.id))
     .filter((t) => t.creditor.deposit !== undefined)
     .filter((t) => t.opposabilityDate > baseRightDate);
 
-  // baseRightDate 구간 이후의 시행령 구간을 순회
-  // 임차인의 대항력 발생일이 아니라, 시행령 개정 구간별로 보증금만 대조
   const basePeriodStart = findPeriodStart(baseRightDate);
-  const subsequentPeriods = SMALL_TENANT_TABLE
-    .map((t) => t.periodStart)
-    .filter((ps) => ps > basePeriodStart)
-    .sort();
+  let currentPeriodStart = basePeriodStart;
 
-  // 각 구간마다: 아직 미분류 임차인 중 deposit ≤ depositMax → 상대적 소액임차인
-  const accumulated = subsequentPeriods.reduce<{
-    readonly relativeSmalls: ReadonlyArray<IRelativeSmallTenantInfo>;
-    readonly ids: ReadonlySet<string>;
-    readonly amounts: ReadonlyMap<string, number>;
-  }>(
-    (acc, periodStart) => {
-      const threshold = getSmallTenantThreshold(region, periodStart);
+  const relativeSmalls: IRelativeSmallTenantInfo[] = [];
+  const ids = new Set<string>();
+  const amounts = new Map<string, number>();
 
-      const newSmalls = candidates
-        .filter((t) => !acc.ids.has(t.creditor.id))
-        .filter((t) => t.opposabilityDate >= periodStart)
-        .filter((t) => t.creditor.deposit! <= threshold.depositMax);
+  // 대항력 발생일 순으로 세입자를 순회하며 구간 변경 감지
+  for (const tenant of sortedTenants) {
+    const tenantPeriodStart = findPeriodStart(tenant.opposabilityDate);
 
-      if (newSmalls.length === 0) return acc;
+    // 같은 구간이면 패스
+    if (tenantPeriodStart <= currentPeriodStart) continue;
 
-      const newInfos: ReadonlyArray<IRelativeSmallTenantInfo> = newSmalls.map(
-        (t) => ({
-          creditorId: t.creditor.id,
-          creditorName: t.creditor.name,
-          deposit: t.creditor.deposit!,
-          priorityAmount: Math.min(t.creditor.deposit!, threshold.priorityMax),
-          periodStart,
-        })
-      );
+    // 새 구간 진입 → 해당 구간 기준으로 미분류 임차인 중 소액 분류
+    currentPeriodStart = tenantPeriodStart;
+    const threshold = getSmallTenantThreshold(region, tenantPeriodStart);
 
-      return {
-        relativeSmalls: [...acc.relativeSmalls, ...newInfos],
-        ids: new Set([...acc.ids, ...newSmalls.map((t) => t.creditor.id)]),
-        amounts: new Map([
-          ...acc.amounts,
-          ...newSmalls.map(
-            (t) =>
-              [
-                t.creditor.id,
-                Math.min(t.creditor.deposit!, threshold.priorityMax),
-              ] as [string, number]
-          ),
-        ]),
-      };
-    },
-    { relativeSmalls: [], ids: new Set(), amounts: new Map() }
-  );
+    for (const candidate of candidates) {
+      if (ids.has(candidate.creditor.id)) continue;
+      if (candidate.creditor.deposit! > threshold.depositMax) continue;
+      // 이미 배당 순서가 지난 세입자는 상대적 소액임차인으로 분류하지 않음
+      // (확정일자가 해당 구간 시작일보다 앞이면 이미 배당받으므로 제외)
+      if (candidate.priorityDate && candidate.priorityDate < tenantPeriodStart) continue;
+
+      const priorityAmount = Math.min(candidate.creditor.deposit!, threshold.priorityMax);
+      relativeSmalls.push({
+        creditorId: candidate.creditor.id,
+        creditorName: candidate.creditor.name,
+        deposit: candidate.creditor.deposit!,
+        priorityAmount,
+        periodStart: tenantPeriodStart,
+      });
+      ids.add(candidate.creditor.id);
+      amounts.set(candidate.creditor.id, priorityAmount);
+    }
+  }
 
   return {
-    relativeSmalls: accumulated.relativeSmalls,
-    relativeSmallIds: accumulated.ids,
-    relativeSmallAmounts: accumulated.amounts,
+    relativeSmalls,
+    relativeSmallIds: ids,
+    relativeSmallAmounts: amounts,
   };
 };
