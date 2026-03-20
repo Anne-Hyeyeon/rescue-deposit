@@ -18,8 +18,10 @@ import {
   createEmptyOtherTenant,
   DEMO_SIMULATION_ADDRESS,
   DEMO_SIMULATION_ADDRESS_2,
+  DEMO_SIMULATION_ADDRESS_3,
   DEMO_SIMULATION_INPUT,
   DEMO_SIMULATION_INPUT_2,
+  DEMO_SIMULATION_INPUT_3,
   parsePropertyType,
   parseRegion,
   removeOtherTenantById,
@@ -49,15 +51,19 @@ export default function SimulatePage() {
   const [bidRateOption, setBidRateOption] = useState<BidRateOption>("none");
   const [customBidRate, setCustomBidRate] = useState(85);
 
-  const loadDemo = (demoCase: 1 | 2 = 1) => {
+  const loadDemo = (demoCase: 1 | 2 | 3 = 1) => {
     if (demoCase === 1) {
       setInput(DEMO_SIMULATION_INPUT);
       setAddress(DEMO_SIMULATION_ADDRESS);
       setAppraisalValue(2_230_942_880);
-    } else {
+    } else if (demoCase === 2) {
       setInput(DEMO_SIMULATION_INPUT_2);
       setAddress(DEMO_SIMULATION_ADDRESS_2);
       setAppraisalValue(2_383_575_800);
+    } else {
+      setInput(DEMO_SIMULATION_INPUT_3);
+      setAddress(DEMO_SIMULATION_ADDRESS_3);
+      setAppraisalValue(0);
     }
     setAppraisalMode("known");
     setIsSold(true);
@@ -163,6 +169,28 @@ export default function SimulatePage() {
               </p>
               <p className="text-xs text-sub-text mt-0.5">
                 다가구 · 근저당 12.96억 · 낙찰가 16억 · 임차인 26명
+              </p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => loadDemo(3)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              bg-accent-bg border border-accent/20 hover:border-accent/50
+              transition-colors duration-150 cursor-pointer text-left group"
+          >
+            <span className="text-lg" aria-hidden="true">🏘️</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-accent">
+                실제 사례 3: 2017년 근저당
+              </p>
+              <p className="text-xs text-sub-text mt-0.5">
+                다가구 · 근저당 9억 · 낙찰가 17.3억 · 임차인 20명
               </p>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
