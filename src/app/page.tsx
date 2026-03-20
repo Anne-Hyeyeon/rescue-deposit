@@ -2,19 +2,9 @@ import { ServiceCard } from "@/components/ServiceCard";
 
 const services = [
   {
-    href: "/calculator",
-    title: "배당표 계산기",
+    href: "/simulate",
+    title: "배당 시뮬레이터",
     description: "예상 배당금을 직접 계산해보세요",
-  },
-  {
-    href: "/chat",
-    title: "AI 챗봇",
-    description: "경매·배당 관련 질문을 AI에게",
-  },
-  {
-    href: "/qna",
-    title: "보증금 Q&A",
-    description: "헤요미가 직접 답변해드려요",
   },
   {
     href: "/mypage",

@@ -30,7 +30,10 @@ export const OptionalSection = ({
       Section 4
     </p>
     <div className="flex flex-col gap-3">
-      <AccordionSection title="다른 세입자 정보 (선택)">
+      <AccordionSection
+        title="다른 세입자 정보 (선택)"
+        forceOpen={input.otherTenants.length > 0}
+      >
         <p className="mb-3 mt-2 text-sm leading-relaxed text-sub-text">
           같은 건물의 다른 세입자 정보를 추가하면 소액임차인 경합 시 더 정확한 결과를 얻을 수 있어요.
         </p>
@@ -58,7 +61,10 @@ export const OptionalSection = ({
         </button>
       </AccordionSection>
 
-      <AccordionSection title="재산세 / 당해세 (선택)">
+      <AccordionSection
+        title="재산세 / 당해세 (선택)"
+        forceOpen={input.propertyTaxOption === "yes"}
+      >
         <p className="mb-4 mt-2 text-sm leading-relaxed text-sub-text">
           재산세(당해세)가 있을 경우 배당 순위에 영향을 줄 수 있어요.
         </p>

@@ -113,6 +113,7 @@ export const PropertySection = ({
           id="mortgageRegDate"
           value={input.mortgageRegDate}
           onChange={(event) => onInputChange({ mortgageRegDate: event.target.value })}
+          hasError={!!errors.mortgageRegDate}
         />
         {errors.mortgageRegDate && (
           <p className="mt-1 text-xs text-error" role="alert">
@@ -138,6 +139,7 @@ export const PropertySection = ({
           value={input.mortgageMaxClaim}
           onChange={(value) => onInputChange({ mortgageMaxClaim: value })}
           placeholder="120,000,000"
+          hasError={!!errors.mortgageMaxClaim}
         />
         {errors.mortgageMaxClaim && (
           <p className="mt-1 text-xs text-error" role="alert">

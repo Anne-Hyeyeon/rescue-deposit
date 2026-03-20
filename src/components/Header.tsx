@@ -6,10 +6,11 @@ import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const navItems = [
+const publicNavItems = [
   { href: "/simulate", label: "배당 시뮬레이터" },
-  { href: "/chat", label: "AI 상담" },
-  { href: "/qna", label: "Q&A" },
+];
+
+const authNavItems = [
   { href: "/mypage", label: "마이페이지" },
 ];
 
@@ -47,17 +48,18 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-divider">
       <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* 로고 */}
-        <Link
-          href="/"
-          className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity duration-200"
-        >
-          절대지켜
-        </Link>
+        {/* 로고 + 네비게이션 */}
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity duration-200"
+          >
+            절대지켜
+          </Link>
 
-        {/* 데스크탑 네비게이션 */}
-        <nav className="hidden sm:flex items-center gap-1">
-          {navItems.map((item) => (
+          {/* 데스크탑 네비게이션 */}
+          <nav className="hidden sm:flex items-center gap-1">
+          {[...publicNavItems, ...(user ? authNavItems : [])].map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -71,7 +73,8 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-        </nav>
+          </nav>
+        </div>
 
         {/* 우측 액션 */}
         <div className="flex items-center gap-2">
@@ -135,7 +138,7 @@ export function Header() {
           {/* 메뉴 패널 */}
           <nav className="relative bg-background border-b border-divider">
             <div className="max-w-2xl mx-auto px-6 py-4 flex flex-col gap-1">
-              {navItems.map((item) => (
+              {[...publicNavItems, ...(user ? authNavItems : [])].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
