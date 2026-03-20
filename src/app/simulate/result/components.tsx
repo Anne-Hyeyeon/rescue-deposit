@@ -6,6 +6,7 @@ import {
   categoryWrap,
   formatPercentage,
   formatResultAmount,
+  formatResultAmountDetail,
   formatResultAmountShort,
 } from "@/app/simulate/result/helpers";
 
@@ -114,7 +115,9 @@ const TableRow = ({ row, index, hasResult }: ITableRowProps) => {
           </span>
         </div>
         {row.note && (
-          <p className="mt-0.5 text-[10px] leading-tight text-muted">{row.note}</p>
+          <p className="mt-0.5 text-[10px] leading-tight text-muted">
+            {row.note}
+          </p>
         )}
       </td>
       <td className="whitespace-nowrap px-1.5 py-2.5 text-center text-xs tabular-nums text-sub-text">
@@ -167,10 +170,10 @@ export const Hero = ({ myAmount, myDeposit, hasResult }: IHeroProps) => (
       <div className="text-white">
         <p className="mb-1 text-sm font-medium opacity-80">예상 배당액</p>
         <p className="text-4xl font-bold tracking-tight">
-          {formatResultAmountShort(myAmount)}
+          {formatResultAmountDetail(myAmount)}
         </p>
         <div className="mt-3 flex items-center gap-3 text-sm opacity-90">
-          <span>보증금 {formatResultAmountShort(myDeposit)} 중 회수율</span>
+          <span>보증금 {formatResultAmountDetail(myDeposit)} 중 회수율</span>
           <span className="text-xl font-bold">
             {formatPercentage(myAmount, myDeposit)}%
           </span>
@@ -219,9 +222,6 @@ export const RiskPanel = ({ myAmount, myDeposit }: IRiskPanelProps) => {
           <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
             {rate < 50 ? "회수 가능성이 낮습니다" : "부분 회수 예상"}
           </p>
-          <p className="mt-1 text-sm leading-relaxed text-yellow-700 dark:text-yellow-400">
-            배당요구종기일 전에 반드시 배당요구를 신청하고, 임차권등기명령을 고려해 보세요.
-          </p>
         </div>
       </div>
     </div>
@@ -255,15 +255,15 @@ export const AssumptionsPanel = () => (
       <li className="flex items-start gap-1.5">
         <span className="mt-0.5 shrink-0 text-yellow-500">•</span>
         <span>
-          대항력 발생일이 입력되면 대항력이 있는 것으로 가정했습니다. 경매개시결정 등기
-          전 대항요건 구비 여부는 별도로 검증하지 않았습니다.
+          대항력 발생일이 입력되면 대항력이 있는 것으로 가정했습니다.
+          경매개시결정 등기 전 대항요건 구비 여부는 별도로 검증하지 않았습니다.
         </span>
       </li>
       <li className="flex items-start gap-1.5">
         <span className="mt-0.5 shrink-0 text-yellow-500">•</span>
         <span>
-          증액된 보증금은 반영되지 않았습니다. 계약 갱신으로 보증금이 변동된 경우
-          소액임차인 판정이 달라질 수 있습니다.
+          증액된 보증금은 반영되지 않았습니다. 계약 갱신으로 보증금이 변동된
+          경우 소액임차인 판정이 달라질 수 있습니다.
         </span>
       </li>
       <li className="flex items-start gap-1.5">
@@ -337,7 +337,7 @@ export const SalePriceAdjuster = ({
             strokeWidth="2.5"
             aria-hidden="true"
           >
-            <polyline points="18 15 12 9 6 15" />
+            <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
         <div className="text-center">
@@ -347,14 +347,16 @@ export const SalePriceAdjuster = ({
           {currentRate && (
             <p className="mt-0.5 text-xs text-sub-text">
               감정가 대비{" "}
-              <span className="font-semibold text-foreground">{currentRate}%</span>
+              <span className="font-semibold text-foreground">
+                {currentRate}%
+              </span>
             </p>
           )}
         </div>
         <button
           type="button"
           onClick={() => handleStep(1)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-card-border bg-background text-foreground transition-all hover:bg-hover-bg active:scale-95 rotate-180"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-card-border bg-background text-foreground transition-all hover:bg-hover-bg active:scale-95"
           aria-label="매각대금 1000만원 증가"
         >
           <svg
@@ -517,7 +519,9 @@ export const Legend = () => (
 
 export const ActionLinksPanel = () => (
   <div className="rounded-2xl border border-card-border bg-card-bg p-5">
-    <h3 className="mb-3 text-sm font-semibold text-foreground">지금 해야 할 일</h3>
+    <h3 className="mb-3 text-sm font-semibold text-foreground">
+      지금 해야 할 일
+    </h3>
     <ul className="flex flex-col gap-1">
       {ACTION_ITEMS.map((item) => (
         <li key={item.href}>
@@ -564,7 +568,8 @@ export const ResultDisclaimer = () => (
       결정을 내리기 전에 반드시 법률 전문가와 상담하시기 바랍니다.
       <br />
       <span className="text-yellow-600 dark:text-yellow-400">
-        증액보증금 반영 불가 · 배당요구 미신청자 미포함 · 대항요건 구비 시점 미검증
+        증액보증금 반영 불가 · 배당요구 미신청자 미포함 · 대항요건 구비 시점
+        미검증
       </span>
     </p>
   </div>

@@ -6,9 +6,23 @@ import type {
 
 export const formatResultAmount = (amount: number) => amount.toLocaleString("ko-KR");
 
+const trimTrailingZeros = (s: string) => s.replace(/\.?0+$/, "");
+
 export const formatResultAmountShort = (amount: number) => {
   if (amount >= 100_000_000) {
-    return `${(amount / 100_000_000).toFixed(1)}억원`;
+    return `${trimTrailingZeros((amount / 100_000_000).toFixed(1))}억원`;
+  }
+
+  if (amount >= 10_000) {
+    return `${Math.round(amount / 10_000).toLocaleString("ko-KR")}만원`;
+  }
+
+  return `${amount.toLocaleString("ko-KR")}원`;
+};
+
+export const formatResultAmountDetail = (amount: number) => {
+  if (amount >= 100_000_000) {
+    return `${trimTrailingZeros((amount / 100_000_000).toFixed(2))}억원`;
   }
 
   if (amount >= 10_000) {
