@@ -31,7 +31,7 @@ export const DEMO_SIMULATION_INPUT = {
   salePrice: 1_784_756_000,
   executionCost: 9_811_568,
   appraisalValue: 2_230_942_880,
-  myName: "A씨",
+  myName: "김○○",
   myDeposit: 160_000_000,
   myOpposabilityDate: "2020-08-24",
   myHasOccupancy: true,
@@ -45,22 +45,22 @@ export const DEMO_SIMULATION_INPUT = {
   propertyTaxAmount: 0,
   propertyTaxLegalDate: "",
   otherTenants: [
-    { id: "t-01", name: "임차인1", deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true },
-    { id: "t-02", name: "임차인2", deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true },
-    { id: "t-03", name: "LH임차인1", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true },
-    { id: "t-04", name: "임차인3", deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true },
-    { id: "t-05", name: "임차인4", deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true },
-    { id: "t-06", name: "LH임차인2", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true },
-    { id: "t-07", name: "LH임차인3", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true },
-    { id: "t-08", name: "임차인5", deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true },
-    { id: "t-09", name: "임차인6", deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true },
-    { id: "t-10", name: "LH임차인4", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true },
-    { id: "t-11", name: "LH임차인5", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true },
-    { id: "t-12", name: "LH임차인6", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true },
-    { id: "t-13", name: "LH임차인7", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true },
-    { id: "t-14", name: "LH임차인8", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true },
-    { id: "t-15", name: "임차인7", deposit: 95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true },
-    { id: "t-16", name: "임차인8", deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true },
+    { id: "t-01", name: "서○○", deposit: 150_000_000, opposabilityDate: "2019-12-02", hasOccupancy: true },
+    { id: "t-02", name: "노○○", deposit: 300_000_000, opposabilityDate: "2019-12-27", hasOccupancy: true },
+    { id: "t-03", name: "LH 서○○", deposit: 110_000_000, opposabilityDate: "2020-01-07", hasOccupancy: true },
+    { id: "t-04", name: "나○○", deposit: 100_000_000, opposabilityDate: "2021-01-13", hasOccupancy: true },
+    { id: "t-05", name: "김○○", deposit: 150_000_000, opposabilityDate: "2021-06-04", hasOccupancy: true },
+    { id: "t-06", name: "LH 양○○", deposit: 120_000_000, opposabilityDate: "2021-08-13", hasOccupancy: true },
+    { id: "t-07", name: "LH 이○○", deposit: 120_000_000, opposabilityDate: "2021-08-23", hasOccupancy: true },
+    { id: "t-08", name: "박○○", deposit: 120_000_000, opposabilityDate: "2021-12-29", hasOccupancy: true },
+    { id: "t-09", name: "박○○", deposit: 120_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true },
+    { id: "t-10", name: "LH 임○○", deposit: 100_000_000, opposabilityDate: "2022-02-08", hasOccupancy: true },
+    { id: "t-11", name: "LH 우○○", deposit: 130_000_000, opposabilityDate: "2022-02-16", hasOccupancy: true },
+    { id: "t-12", name: "LH 유○○", deposit: 120_000_000, opposabilityDate: "2022-04-21", hasOccupancy: true },
+    { id: "t-13", name: "LH 양○○", deposit: 110_000_000, opposabilityDate: "2022-05-25", hasOccupancy: true },
+    { id: "t-14", name: "LH 조○○", deposit: 120_000_000, opposabilityDate: "2022-07-01", hasOccupancy: true },
+    { id: "t-15", name: "이○○", deposit: 95_000_000, opposabilityDate: "2022-09-08", hasOccupancy: true },
+    { id: "t-16", name: "야○○", deposit: 130_000_000, opposabilityDate: "2022-09-26", hasOccupancy: true },
   ],
 } satisfies ISimulationInput;
 
@@ -115,6 +115,49 @@ export const DEMO_SIMULATION_INPUT_2 = {
 } satisfies ISimulationInput;
 
 export const DEMO_SIMULATION_ADDRESS_2 = "서울시 강남구";
+
+// Third demo case - Real auction case (2017 mortgage, 20 tenants)
+export const DEMO_SIMULATION_INPUT_3 = {
+  salePrice: 1_732_770_000,
+  executionCost: 0,
+  appraisalValue: 0,
+  myName: "이○○",
+  myDeposit: 135_000_000,
+  myOpposabilityDate: "2019-10-23",
+  myHasOccupancy: true,
+  mortgageName: "근저당권자",
+  mortgagePrincipal: 900_000_000,
+  mortgageMaxClaim: 900_000_000,
+  mortgageRegDate: "2017-09-15",
+  propertyType: "multi_family",
+  region: "seoul",
+  propertyTaxOption: "no",
+  propertyTaxAmount: 0,
+  propertyTaxLegalDate: "",
+  otherTenants: [
+    { id: "t3-01", name: "정○○(202)", deposit: 110_000_000, opposabilityDate: "2017-09-20", hasOccupancy: true },
+    { id: "t3-02", name: "안○○(103)", deposit: 85_000_000, opposabilityDate: "2019-08-27", hasOccupancy: true },
+    { id: "t3-03", name: "김○○(402)", deposit: 140_000_000, opposabilityDate: "2019-11-25", hasOccupancy: true },
+    { id: "t3-04", name: "양○○(502)", deposit: 150_000_000, opposabilityDate: "2020-02-07", hasOccupancy: true },
+    { id: "t3-05", name: "송○○(501)", deposit: 140_000_000, opposabilityDate: "2020-06-02", hasOccupancy: true },
+    { id: "t3-06", name: "정○○(404)", deposit: 140_000_000, opposabilityDate: "2021-12-31", hasOccupancy: true },
+    { id: "t3-07", name: "이○○(203)", deposit: 100_000_000, opposabilityDate: "2022-03-24", hasOccupancy: true },
+    { id: "t3-08", name: "박○○(602)", deposit: 40_000_000, opposabilityDate: "2022-04-14", hasOccupancy: true },
+    { id: "t3-09", name: "김○○(401)", deposit: 150_000_000, opposabilityDate: "2022-05-02", hasOccupancy: true },
+    { id: "t3-10", name: "안○○(101)", deposit: 170_000_000, opposabilityDate: "2022-06-28", hasOccupancy: true },
+    { id: "t3-11", name: "송○○(104)", deposit: 50_000_000, opposabilityDate: "2022-07-04", hasOccupancy: true },
+    { id: "t3-12", name: "김○○(601)", deposit: 100_000_000, opposabilityDate: "2023-05-26", hasOccupancy: true },
+    { id: "t3-13", name: "정○○(303)", deposit: 130_000_000, opposabilityDate: "2023-09-25", hasOccupancy: true },
+    { id: "t3-14", name: "서○○(304)", deposit: 120_000_000, opposabilityDate: "2023-10-04", hasOccupancy: true },
+    { id: "t3-15", name: "박○○(201)", deposit: 50_000_000, opposabilityDate: "2023-10-10", hasOccupancy: true },
+    { id: "t3-16", name: "조○○(302)", deposit: 135_000_000, opposabilityDate: "2023-10-25", hasOccupancy: true },
+    { id: "t3-17", name: "윤○○(301)", deposit: 140_000_000, opposabilityDate: "2023-11-14", hasOccupancy: true },
+    { id: "t3-18", name: "한○○(204)", deposit: 100_000_000, opposabilityDate: "2024-11-13", hasOccupancy: true },
+    { id: "t3-19", name: "송○○(102)", deposit: 2_700_000, opposabilityDate: "", hasOccupancy: false },
+  ],
+} satisfies ISimulationInput;
+
+export const DEMO_SIMULATION_ADDRESS_3 = "";
 
 export const formatKRW = (amount: number) =>
   amount >= 100_000_000
