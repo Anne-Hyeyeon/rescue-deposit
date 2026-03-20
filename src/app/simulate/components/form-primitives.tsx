@@ -72,12 +72,20 @@ export const FieldLabel = ({
   );
 };
 
-export const InputField = (props: InputHTMLAttributes<HTMLInputElement>) => (
-  <input
-    {...props}
-    className={`w-full rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 ${props.className ?? ""}`}
-  />
-);
+export const InputField = (props: InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean }) => {
+  const { hasError, className, ...rest } = props;
+  return (
+    <input
+      {...rest}
+      aria-invalid={hasError || undefined}
+      className={`w-full rounded-xl border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-muted focus:outline-none focus:ring-2 ${
+        hasError
+          ? "border-error focus:border-error focus:ring-error/40"
+          : "border-card-border focus:border-accent focus:ring-accent/40"
+      } ${className ?? ""}`}
+    />
+  );
+};
 
 const MONEY_BUTTONS = [
   { label: "+1억", value: 100_000_000 },
@@ -91,6 +99,7 @@ interface IMoneyInputProps {
   onChange: (value: number) => void;
   placeholder?: string;
   compact?: boolean;
+  hasError?: boolean;
 }
 
 export const MoneyInput = ({
@@ -99,6 +108,7 @@ export const MoneyInput = ({
   onChange,
   placeholder = "0",
   compact = false,
+  hasError = false,
 }: IMoneyInputProps) => {
   const [raw, setRaw] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -136,7 +146,12 @@ export const MoneyInput = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 tabular-nums"
+        aria-invalid={hasError || undefined}
+        className={`w-full rounded-xl border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-muted focus:outline-none focus:ring-2 tabular-nums ${
+          hasError
+            ? "border-error focus:border-error focus:ring-error/40"
+            : "border-card-border focus:border-accent focus:ring-accent/40"
+        }`}
       />
       {!compact && (
         <div className="mt-2 flex gap-1.5">
@@ -167,7 +182,7 @@ export const MoneyInput = ({
   );
 };
 
-export const DateInput = (props: InputHTMLAttributes<HTMLInputElement>) => (
+export const DateInput = (props: InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean }) => (
   <InputField
     type="date"
     {...props}
@@ -265,14 +280,23 @@ interface IAccordionSectionProps {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  forceOpen?: boolean;
 }
 
 export const AccordionSection = ({
   title,
   children,
   defaultOpen = false,
+  forceOpen = false,
 }: IAccordionSectionProps) => {
   const [open, setOpen] = useState(defaultOpen);
+  const [wasForced, setWasForced] = useState(false);
+
+  // 데이터가 채워지면 자동으로 열기 (한 번만)
+  if (forceOpen && !open && !wasForced) {
+    setOpen(true);
+    setWasForced(true);
+  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-card-border">

@@ -178,6 +178,7 @@ export const SalePriceSection = ({
                   value={input.salePrice}
                   onChange={(value) => onInputChange({ salePrice: value })}
                   placeholder="400,000,000"
+                  hasError={!!errors.salePrice}
                 />
                 {input.salePrice > 0 && appraisalValue > 0 && (
                   <p className="mt-1 text-xs font-medium text-accent">
@@ -194,6 +195,7 @@ export const SalePriceSection = ({
                     value={input.salePrice}
                     onChange={(value) => onInputChange({ salePrice: value })}
                     placeholder="400,000,000"
+                    hasError={!!errors.salePrice}
                   />
                 </div>
                 <AppraisalRateHelper
@@ -254,6 +256,7 @@ export const SalePriceSection = ({
             value={input.salePrice}
             onChange={(value) => onInputChange({ salePrice: value })}
             placeholder="400,000,000"
+            hasError={!!errors.salePrice}
           />
           {errors.salePrice && (
             <p className="mt-1 text-xs text-error" role="alert">

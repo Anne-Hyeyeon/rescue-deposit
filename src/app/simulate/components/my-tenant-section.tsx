@@ -58,6 +58,7 @@ export const MyTenantSection = ({
           value={input.myDeposit}
           onChange={(value) => onInputChange({ myDeposit: value })}
           placeholder="50,000,000"
+          hasError={!!errors.myDeposit}
         />
         {errors.myDeposit && (
           <p className="mt-1 text-xs text-error" role="alert">
@@ -83,6 +84,7 @@ export const MyTenantSection = ({
           onChange={(event) =>
             onInputChange({ myOpposabilityDate: event.target.value })
           }
+          hasError={!!errors.myOpposabilityDate}
         />
         {errors.myOpposabilityDate && (
           <p className="mt-1 text-xs text-error" role="alert">

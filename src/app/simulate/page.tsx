@@ -1,11 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useCallback, type FormEvent } from "react";
 
 import {
   useSimulationStore,
 } from "@/store/simulationStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { getSimulationDataList } from "@/lib/supabase/simulation-data";
+import { downloadSimulationExcel } from "@/lib/excel/generator";
 import { AssumptionsBanner } from "@/app/simulate/components/form-primitives";
 import {
   MyTenantSection,
@@ -34,12 +38,18 @@ import { runSimulation } from "@/lib/engine/bridge";
 import type {
   IOtherTenant,
 } from "@/types/simulation";
+import { defaultSimulationInput } from "@/types/simulation";
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function SimulatePage() {
   const router = useRouter();
   const { input, setInput, setResult } = useSimulationStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthLoading = useAuthStore((s) => s.isLoading);
+  const [loadingMyData, setLoadingMyData] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [activeSource, setActiveSource] = useState<"my" | 1 | 2 | 3 | null>(null);
 
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<SimulationFormErrors>({});
@@ -69,7 +79,33 @@ export default function SimulatePage() {
     setIsSold(true);
     setBidRateOption("none");
     setErrors({});
+    setActiveSource(demoCase);
   };
+
+  const loadMyData = useCallback(async () => {
+    if (!user) {
+      router.push("/login?redirect=/simulate");
+      return;
+    }
+    setLoadingMyData(true);
+    try {
+      const list = await getSimulationDataList(user.id);
+      if (list.length === 0) {
+        router.push("/mypage");
+        return;
+      }
+      const latest = list[0];
+      setInput(latest.data);
+      setAppraisalMode("known");
+      setAppraisalValue(latest.data.appraisalValue);
+      setIsSold(true);
+      setBidRateOption("none");
+      setErrors({});
+      setActiveSource("my");
+    } finally {
+      setLoadingMyData(false);
+    }
+  }, [user, router, setInput]);
 
   const handleBidRateSelect = (option: BidRateOption, base: number) => {
     setBidRateOption(option);
@@ -105,7 +141,25 @@ export default function SimulatePage() {
   const validate = () => {
     const errs = validateSimulationInput(input);
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (Object.keys(errs).length > 0) {
+      // 첫 번째 에러 필드로 스크롤
+      const firstErrorField = Object.keys(errs)[0];
+      const fieldIdMap: Record<string, string> = {
+        salePrice: isSold ? "salePrice-sold" : appraisalMode === "known" ? "salePrice-sold" : "salePrice-unknown",
+        myDeposit: "myDeposit",
+        myOpposabilityDate: "myOpposabilityDate",
+        mortgageRegDate: "mortgageRegDate",
+        mortgageMaxClaim: "mortgageMaxClaim",
+      };
+      const targetId = fieldIdMap[firstErrorField];
+      if (targetId) {
+        const el = document.getElementById(targetId);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
+      }
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -117,6 +171,31 @@ export default function SimulatePage() {
     setResult(result);
     router.push("/simulate/result");
   };
+
+  if (isAuthLoading) return null;
+
+  if (!user) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-24 flex flex-col items-center text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-sub-text mb-6" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <h1 className="text-xl font-bold tracking-tight text-foreground mb-2">
+          로그인 후 접근이 가능합니다
+        </h1>
+        <p className="text-sm text-sub-text mb-6">
+          배당 시뮬레이터를 이용하려면 로그인이 필요합니다.
+        </p>
+        <Link
+          href="/login?redirect=/simulate"
+          className="px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-colors"
+        >
+          로그인하기
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-10 pb-24">
@@ -131,14 +210,59 @@ export default function SimulatePage() {
           입력 정보는 서버에 저장되지 않습니다.
         </p>
 
-        {/* 데모 배너 */}
+        {/* 내 데이터 + 데모 배너 */}
         <div className="mt-4 space-y-2">
+          {/* 내 데이터 입력하기 */}
+          <button
+            type="button"
+            onClick={loadMyData}
+            disabled={loadingMyData}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              transition-colors duration-150 cursor-pointer text-left group disabled:opacity-50
+              ${activeSource === "my"
+                ? "bg-card-bg border-2 border-foreground/40"
+                : "bg-card-bg border border-card-border hover:border-foreground/30"
+              }`}
+          >
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-badge-bg flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                className="text-foreground" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {loadingMyData ? "불러오는 중..." : "내 데이터 입력하기"}
+              </p>
+              <p className="text-xs text-sub-text mt-0.5">
+                마이페이지에 저장한 배당 데이터를 자동으로 입력합니다
+              </p>
+            </div>
+            {activeSource === "my" ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                className="text-accent flex-shrink-0" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className="text-sub-text flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() => loadDemo(1)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
-              bg-accent-bg border border-accent/20 hover:border-accent/50
-              transition-colors duration-150 cursor-pointer text-left group"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              transition-colors duration-150 cursor-pointer text-left group
+              ${activeSource === 1
+                ? "bg-accent-bg border-2 border-accent"
+                : "bg-accent-bg border border-accent/20 hover:border-accent/50"
+              }`}
           >
             <span className="text-lg" aria-hidden="true">⚖️</span>
             <div className="flex-1 min-w-0">
@@ -149,18 +273,28 @@ export default function SimulatePage() {
                 다가구 · 낙찰가 17.8억 · 감정가 22.3억 · 임차인 17명
               </p>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            {activeSource === 1 ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                className="text-accent flex-shrink-0" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
           </button>
-          
+
           <button
             type="button"
             onClick={() => loadDemo(2)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
-              bg-accent-bg border border-accent/20 hover:border-accent/50
-              transition-colors duration-150 cursor-pointer text-left group"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              transition-colors duration-150 cursor-pointer text-left group
+              ${activeSource === 2
+                ? "bg-accent-bg border-2 border-accent"
+                : "bg-accent-bg border border-accent/20 hover:border-accent/50"
+              }`}
           >
             <span className="text-lg" aria-hidden="true">🏢</span>
             <div className="flex-1 min-w-0">
@@ -171,18 +305,28 @@ export default function SimulatePage() {
                 다가구 · 근저당 12.96억 · 낙찰가 16억 · 임차인 26명
               </p>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            {activeSource === 2 ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                className="text-accent flex-shrink-0" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
           </button>
 
           <button
             type="button"
             onClick={() => loadDemo(3)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
-              bg-accent-bg border border-accent/20 hover:border-accent/50
-              transition-colors duration-150 cursor-pointer text-left group"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              transition-colors duration-150 cursor-pointer text-left group
+              ${activeSource === 3
+                ? "bg-accent-bg border-2 border-accent"
+                : "bg-accent-bg border border-accent/20 hover:border-accent/50"
+              }`}
           >
             <span className="text-lg" aria-hidden="true">🏘️</span>
             <div className="flex-1 min-w-0">
@@ -193,10 +337,17 @@ export default function SimulatePage() {
                 다가구 · 근저당 9억 · 낙찰가 17.3억 · 임차인 20명
               </p>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            {activeSource === 3 ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                className="text-accent flex-shrink-0" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
@@ -267,13 +418,77 @@ export default function SimulatePage() {
             onRemoveOtherTenant={removeOtherTenant}
           />
 
-          {/* Submit */}
-          <button type="submit"
-            className="w-full py-4 rounded-2xl bg-accent text-white font-semibold text-base
-              hover:opacity-90 active:scale-[0.98] transition-all duration-150
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40
-              cursor-pointer shadow-sm">
-            배당액 계산하기
+          {/* Submit + 전체 지우기 */}
+          {confirmReset ? (
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-error/30 bg-error-bg/50 py-5 px-4">
+              <p className="text-sm font-medium text-foreground">입력한 정보를 모두 지울까요?</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInput(defaultSimulationInput);
+                    setAppraisalValue(0);
+                    setAddress("");
+                    setIsSold(false);
+                    setBidRateOption("none");
+                    setErrors({});
+                    setConfirmReset(false);
+                    setActiveSource(null);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="px-5 py-2 rounded-xl bg-error text-white text-sm font-medium hover:bg-error/80 transition-colors cursor-pointer"
+                >
+                  전체 지우기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmReset(false)}
+                  className="px-5 py-2 rounded-xl border border-card-border text-sm text-sub-text hover:text-foreground transition-colors cursor-pointer"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button type="submit"
+                className="flex-1 py-4 rounded-2xl bg-accent text-white font-semibold text-base
+                  hover:opacity-90 active:scale-[0.98] transition-all duration-150
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40
+                  cursor-pointer shadow-sm">
+                배당액 계산하기
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmReset(true)}
+                className="px-4 py-4 rounded-2xl border border-card-border text-sub-text
+                  hover:border-error/50 hover:text-error transition-colors duration-150
+                  cursor-pointer"
+                aria-label="전체 지우기"
+                title="전체 지우기"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* 엑셀로 저장 */}
+          <button
+            type="button"
+            onClick={() => downloadSimulationExcel({ ...input, appraisalValue })}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-card-border text-sm font-medium text-sub-text
+              hover:border-foreground/40 hover:text-foreground transition-colors duration-150
+              cursor-pointer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            입력 정보를 엑셀로 저장
           </button>
         </div>
       </form>
