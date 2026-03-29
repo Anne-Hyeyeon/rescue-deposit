@@ -1,16 +1,21 @@
 "use client";
 
-import { REGION_LABELS } from "@/app/simulate/helpers";
+import dynamic from "next/dynamic";
 import {
   Card,
   DateInput,
   FieldLabel,
   FieldTip,
   InfoChip,
-  InputField,
   MoneyInput,
   SectionTitle,
 } from "@/app/simulate/components/form-primitives";
+import { ThresholdInfoPanel } from "@/app/simulate/components/ThresholdInfoPanel";
+
+const AddressSearchButton = dynamic(
+  () => import("@/app/simulate/components/AddressSearchButton").then((m) => m.AddressSearchButton),
+  { ssr: false },
+);
 
 import type { IPropertySectionProps } from "@/app/simulate/components/section-types";
 
@@ -18,7 +23,11 @@ export const PropertySection = ({
   input,
   address,
   errors,
+  detectedRegionLabel,
+  thresholdDepositMax,
+  thresholdPriorityMax,
   onAddressChange,
+  onAddressSearch,
   onInputChange,
   onRegionChange,
   onPropertyTypeChange,
@@ -33,22 +42,29 @@ export const PropertySection = ({
     <div className="flex flex-col gap-4">
       <div>
         <FieldLabel htmlFor="address">건물 주소</FieldLabel>
-        <InputField
-          id="address"
-          type="text"
-          value={address}
-          onChange={(event) => onAddressChange(event.target.value)}
-          placeholder="예: 서울시 동작구 대방동 393-57"
-        />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground min-h-[42px] flex items-center">
+            {address ? (
+              <span>{address}</span>
+            ) : (
+              <span className="text-sub-text">주소 검색 버튼을 눌러주세요</span>
+            )}
+          </div>
+          <AddressSearchButton onComplete={onAddressSearch} />
+        </div>
         <p className="mt-1.5 text-xs text-sub-text">
-          주소를 입력하면 소액임차인 기준표의 지역 구간을 자동으로 판단합니다.
+          주소를 검색하면 소액임차인 기준표의 지역 구간을 자동으로 판단합니다.
         </p>
-        {address && (
+        {detectedRegionLabel && (
           <InfoChip>
-            자동 판단된 지역: <strong>{REGION_LABELS[input.region]}</strong>
+            자동 판단된 지역: <strong>{detectedRegionLabel}</strong>
             {" "}다르다면 아래에서 직접 수정하세요.
           </InfoChip>
         )}
+        <ThresholdInfoPanel
+          depositMax={thresholdDepositMax}
+          priorityMax={thresholdPriorityMax}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -83,13 +99,14 @@ export const PropertySection = ({
       <div>
         <FieldLabel htmlFor="mortgageName">근저당권자 이름</FieldLabel>
         <div className="flex items-center gap-2">
-          <InputField
+          <input
             id="mortgageName"
             type="text"
             value={input.mortgageName}
             onChange={(event) => onInputChange({ mortgageName: event.target.value })}
             placeholder="예: ○○은행"
             disabled={input.mortgageName === "선순위 근저당"}
+            className="w-full rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-sub-text/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50"
           />
           <label className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap">
             <input

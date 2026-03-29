@@ -14,15 +14,20 @@ import {
   RiskPanel,
   SalePriceAdjuster,
 } from "@/app/simulate/result/components";
+import {
+  buildResultViewModel,
+  canAccessSimulationResult,
+} from "@/app/simulate/helpers";
 import { buildPlaceholderRows } from "@/app/simulate/result/helpers";
 import { runSimulation } from "@/lib/engine/bridge";
+import { downloadSimulationResultExcel } from "@/lib/excel/generator";
 import { useSimulationStore } from "@/store/simulationStore";
 
 export default function SimulateResultPage() {
   const router = useRouter();
   const { input, result, setInput, setResult } = useSimulationStore();
-
-  const hasInput = input.myDeposit > 0 && input.mortgageRegDate;
+  const hasInput = canAccessSimulationResult(input);
+  const resultView = buildResultViewModel(input);
 
   useEffect(() => {
     if (!hasInput) {
@@ -66,10 +71,12 @@ export default function SimulateResultPage() {
   const hasResult = result !== null;
   const myAmount = result?.myDistributedAmount ?? 0;
   const remainingBalance = result?.remainingBalance ?? 0;
+  const actionButtonClassName =
+    "inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-xl border border-card-border px-4 text-sm text-sub-text transition-colors hover:border-accent hover:text-accent disabled:opacity-50";
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-10">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/simulate"
           className="inline-flex items-center gap-1.5 text-sm text-sub-text transition-colors hover:text-foreground"
@@ -89,36 +96,60 @@ export default function SimulateResultPage() {
         </Link>
 
         {hasResult && (
-          <button
-            type="button"
-            onClick={handleSaveImage}
-            disabled={isCapturing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-card-border px-3 py-1.5 text-sm text-sub-text transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => result && downloadSimulationResultExcel(input, result)}
+              className={actionButtonClassName}
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            {isCapturing ? "저장 중..." : "이미지로 저장"}
-          </button>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              엑셀로 저장
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveImage}
+              disabled={isCapturing}
+              className={actionButtonClassName}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {isCapturing ? "저장 중..." : "이미지로 저장"}
+            </button>
+          </div>
         )}
       </div>
 
       <div ref={captureRef} className="flex flex-col gap-5">
-        <Hero
-          myAmount={myAmount}
-          myDeposit={input.myDeposit}
-          hasResult={hasResult}
-        />
+        {resultView.showHero && (
+          <Hero
+            myAmount={myAmount}
+            myDeposit={input.myDeposit}
+            hasResult={hasResult}
+          />
+        )}
 
         {hasResult && (
           <SalePriceAdjuster
@@ -128,7 +159,7 @@ export default function SimulateResultPage() {
           />
         )}
 
-        {hasResult && (
+        {hasResult && resultView.showRiskPanel && (
           <RiskPanel myAmount={myAmount} myDeposit={input.myDeposit} />
         )}
 
@@ -142,7 +173,7 @@ export default function SimulateResultPage() {
           remainingBalance={remainingBalance}
         />
 
-        <Legend />
+        <Legend showMyTenant={resultView.highlightMyTenant} />
         <ActionLinksPanel />
         <ResultDisclaimer />
       </div>

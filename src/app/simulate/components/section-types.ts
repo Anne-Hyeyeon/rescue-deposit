@@ -36,7 +36,11 @@ export interface IPropertySectionProps {
   input: ISimulationInput;
   address: string;
   errors: SimulationFormErrors;
+  detectedRegionLabel: string | null;
+  thresholdDepositMax: number | null;
+  thresholdPriorityMax: number | null;
   onAddressChange: (address: string) => void;
+  onAddressSearch: (data: { address: string; sido: string; sigungu: string }) => void;
   onInputChange: SimulationInputUpdater;
   onRegionChange: (value: string) => void;
   onPropertyTypeChange: (value: string) => void;
@@ -44,6 +48,8 @@ export interface IPropertySectionProps {
 
 export interface IOptionalSectionProps {
   input: ISimulationInput;
+  errors: SimulationFormErrors;
+  hasMyTenant: boolean;
   onInputChange: SimulationInputUpdater;
   onAddOtherTenant: () => void;
   onUpdateOtherTenant: (tenantId: string, tenant: IOtherTenant) => void;

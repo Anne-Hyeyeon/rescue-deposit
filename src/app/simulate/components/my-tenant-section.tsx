@@ -22,7 +22,7 @@ export const MyTenantSection = ({
     <SectionTitle
       step="Section 2"
       title="나의 임차 정보"
-      sub="등기부등본 전입세대 열람과 임대차계약서를 기준으로 입력하세요."
+      sub="본인 보증금을 아는 경우에만 입력하세요. 모르면 비워두고 아래 세입자 정보를 입력하면 됩니다."
     />
 
     <div className="flex flex-col gap-4">
@@ -65,6 +65,9 @@ export const MyTenantSection = ({
             {errors.myDeposit}
           </p>
         )}
+        <p className="mt-1 text-xs text-sub-text">
+          선택 입력입니다. 본인 보증금을 모르면 아래 세입자 정보를 1명 이상 입력하세요.
+        </p>
         <WarningChip>
           계약 갱신으로 보증금이 증액된 경우, <strong>현재 보증금</strong>을 입력하세요.
           증액 전 보증금과의 차이에 따른 소액임차인 판정 변동은 반영되지 않습니다.
