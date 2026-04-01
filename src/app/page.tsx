@@ -29,7 +29,10 @@ const Home = () => {
             <br />
             같은 아픔을 겪는 분들이 덜 헤매시길 바라며.
           </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-badge-bg border border-card-border text-xs text-sub-text w-fit">
+          <p className="text-xs text-muted mb-4">
+            현재는 &lsquo;배당 시뮬레이터&rsquo;만 베타 테스트로 운영 중입니다.
+          </p>
+          {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-badge-bg border border-card-border text-xs text-sub-text w-fit">
             <svg
               className="w-3.5 h-3.5 shrink-0"
               viewBox="0 0 24 24"
@@ -44,7 +47,7 @@ const Home = () => {
               <circle cx="12" cy="7" r="4" />
             </svg>
             피해자가 직접 운영합니다
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -77,6 +80,6 @@ const Home = () => {
       </section>
     </div>
   );
-}
+};
 
 export default Home;
