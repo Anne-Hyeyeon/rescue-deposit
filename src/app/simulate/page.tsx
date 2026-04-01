@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useCallback, type FormEvent } from "react";
+import { useState, useCallback, useEffect, useMemo, type FormEvent } from "react";
 
 import {
   useSimulationStore,
@@ -19,15 +18,19 @@ import {
 } from "@/app/simulate/components/sections";
 import {
   calcSalePriceFromRate,
-  createEmptyOtherTenant,
+  defaultVisibleOtherTenants,
   DEMO_SIMULATION_ADDRESS,
   DEMO_SIMULATION_ADDRESS_2,
   DEMO_SIMULATION_ADDRESS_3,
+  DEMO_SIMULATION_ADDRESS_4,
   DEMO_SIMULATION_INPUT,
   DEMO_SIMULATION_INPUT_2,
   DEMO_SIMULATION_INPUT_3,
+  DEMO_SIMULATION_INPUT_4,
+  hasMyTenantInput,
   parsePropertyType,
   parseRegion,
+  REGION_LABELS,
   removeOtherTenantById,
   type BidRateOption,
   type SimulationFormErrors,
@@ -35,6 +38,9 @@ import {
   validateSimulationInput,
 } from "@/app/simulate/helpers";
 import { runSimulation } from "@/lib/engine/bridge";
+import { resolveRegion } from "@/lib/engine/region";
+import { getSmallTenantThreshold } from "@/lib/engine/constants";
+import { mapEngineToStoreRegion, mapRegion } from "@/lib/engine/bridge-helpers";
 import type {
   IOtherTenant,
 } from "@/types/simulation";
@@ -49,10 +55,38 @@ export default function SimulatePage() {
   const isAuthLoading = useAuthStore((s) => s.isLoading);
   const [loadingMyData, setLoadingMyData] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [activeSource, setActiveSource] = useState<"my" | 1 | 2 | 3 | null>(null);
+  const [activeSource, setActiveSource] = useState<"my" | 1 | 2 | 3 | 4 | null>(null);
 
   const [address, setAddress] = useState("");
+  const [detectedRegionLabel, setDetectedRegionLabel] = useState<string | null>(null);
   const [errors, setErrors] = useState<SimulationFormErrors>({});
+
+  const handleAddressSearch = useCallback(
+    (data: { address: string; sido: string; sigungu: string }) => {
+      setAddress(data.address);
+      const refDate = input.mortgageRegDate || new Date().toISOString().slice(0, 10);
+      const engineRegion = resolveRegion(data.address, refDate);
+      const storeRegion = mapEngineToStoreRegion(engineRegion);
+      setInput({ region: storeRegion });
+      setDetectedRegionLabel(REGION_LABELS[storeRegion]);
+    },
+    [input.mortgageRegDate, setInput],
+  );
+
+  const { thresholdDepositMax, thresholdPriorityMax } = useMemo(() => {
+    const refDate = input.mortgageRegDate || null;
+    if (!refDate) return { thresholdDepositMax: null, thresholdPriorityMax: null };
+    try {
+      const engineRegion = mapRegion(input.region);
+      const threshold = getSmallTenantThreshold(engineRegion, refDate);
+      return {
+        thresholdDepositMax: threshold.depositMax,
+        thresholdPriorityMax: threshold.priorityMax,
+      };
+    } catch {
+      return { thresholdDepositMax: null, thresholdPriorityMax: null };
+    }
+  }, [input.region, input.mortgageRegDate]);
 
   // Section 1 state
   const [appraisalMode, setAppraisalMode] = useState<"known" | "unknown">("known");
@@ -60,19 +94,36 @@ export default function SimulatePage() {
   const [isSold, setIsSold] = useState(false);
   const [bidRateOption, setBidRateOption] = useState<BidRateOption>("none");
   const [customBidRate, setCustomBidRate] = useState(85);
+  const hasMyTenant = hasMyTenantInput(input);
 
-  const loadDemo = (demoCase: 1 | 2 | 3 = 1) => {
+  const loadDemo = (demoCase: 1 | 2 | 3 | 4 = 1) => {
     if (demoCase === 1) {
-      setInput(DEMO_SIMULATION_INPUT);
+      setInput({
+        ...DEMO_SIMULATION_INPUT,
+        otherTenants: defaultVisibleOtherTenants(DEMO_SIMULATION_INPUT.otherTenants),
+      });
       setAddress(DEMO_SIMULATION_ADDRESS);
       setAppraisalValue(2_230_942_880);
     } else if (demoCase === 2) {
-      setInput(DEMO_SIMULATION_INPUT_2);
+      setInput({
+        ...DEMO_SIMULATION_INPUT_2,
+        otherTenants: defaultVisibleOtherTenants(DEMO_SIMULATION_INPUT_2.otherTenants),
+      });
       setAddress(DEMO_SIMULATION_ADDRESS_2);
       setAppraisalValue(2_383_575_800);
-    } else {
-      setInput(DEMO_SIMULATION_INPUT_3);
+    } else if (demoCase === 3) {
+      setInput({
+        ...DEMO_SIMULATION_INPUT_3,
+        otherTenants: defaultVisibleOtherTenants(DEMO_SIMULATION_INPUT_3.otherTenants),
+      });
       setAddress(DEMO_SIMULATION_ADDRESS_3);
+      setAppraisalValue(0);
+    } else {
+      setInput({
+        ...DEMO_SIMULATION_INPUT_4,
+        otherTenants: defaultVisibleOtherTenants(DEMO_SIMULATION_INPUT_4.otherTenants),
+      });
+      setAddress(DEMO_SIMULATION_ADDRESS_4);
       setAppraisalValue(0);
     }
     setAppraisalMode("known");
@@ -95,7 +146,10 @@ export default function SimulatePage() {
         return;
       }
       const latest = list[0];
-      setInput(latest.data);
+      setInput({
+        ...latest.data,
+        otherTenants: defaultVisibleOtherTenants(latest.data.otherTenants),
+      });
       setAppraisalMode("known");
       setAppraisalValue(latest.data.appraisalValue);
       setIsSold(true);
@@ -125,7 +179,7 @@ export default function SimulatePage() {
     setInput({
       otherTenants: [
         ...input.otherTenants,
-        createEmptyOtherTenant(),
+        ...defaultVisibleOtherTenants([]),
       ],
     });
   };
@@ -135,7 +189,9 @@ export default function SimulatePage() {
   };
 
   const removeOtherTenant = (id: string) => {
-    setInput({ otherTenants: removeOtherTenantById(input.otherTenants, id) });
+    setInput({
+      otherTenants: defaultVisibleOtherTenants(removeOtherTenantById(input.otherTenants, id)),
+    });
   };
 
   const validate = () => {
@@ -150,6 +206,7 @@ export default function SimulatePage() {
         myOpposabilityDate: "myOpposabilityDate",
         mortgageRegDate: "mortgageRegDate",
         mortgageMaxClaim: "mortgageMaxClaim",
+        otherTenants: "other-tenants-section",
       };
       const targetId = fieldIdMap[firstErrorField];
       if (targetId) {
@@ -165,37 +222,30 @@ export default function SimulatePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    setInput({ appraisalValue });
-    const updatedInput = { ...input, appraisalValue };
+    const updatedInput = {
+      ...input,
+      appraisalValue,
+      otherTenants: defaultVisibleOtherTenants(input.otherTenants),
+    };
+    setInput(updatedInput);
     const result = runSimulation(updatedInput);
     setResult(result);
     router.push("/simulate/result");
   };
 
-  if (isAuthLoading) return null;
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace("/login?redirect=/simulate");
+    }
+  }, [isAuthLoading, user, router]);
 
-  if (!user) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 pt-24 pb-24 flex flex-col items-center text-center">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-sub-text mb-6" aria-hidden="true">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-        <h1 className="text-xl font-bold tracking-tight text-foreground mb-2">
-          로그인 후 접근이 가능합니다
-        </h1>
-        <p className="text-sm text-sub-text mb-6">
-          배당 시뮬레이터를 이용하려면 로그인이 필요합니다.
-        </p>
-        <Link
-          href="/login?redirect=/simulate"
-          className="px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-colors"
-        >
-          로그인하기
-        </Link>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (input.otherTenants.length === 0) {
+      setInput({ otherTenants: defaultVisibleOtherTenants([]) });
+    }
+  }, [input.otherTenants.length, setInput]);
+
+  if (isAuthLoading || !user) return null;
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-10 pb-24">
@@ -349,6 +399,38 @@ export default function SimulatePage() {
               </svg>
             )}
           </button>
+
+          <button
+            type="button"
+            onClick={() => loadDemo(4)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              transition-colors duration-150 cursor-pointer text-left group
+              ${activeSource === 4
+                ? "bg-accent-bg border-2 border-accent"
+                : "bg-accent-bg border border-accent/20 hover:border-accent/50"
+              }`}
+          >
+            <span className="text-lg" aria-hidden="true">🏚️</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-accent">
+                실제 사례 4: 2020년 근저당
+              </p>
+              <p className="text-xs text-sub-text mt-0.5">
+                다가구 · 근저당 8.66억 · 낙찰가 20.1억 · 임차인 25명
+              </p>
+            </div>
+            {activeSource === 4 ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                className="text-accent flex-shrink-0" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className="text-accent flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
@@ -396,7 +478,11 @@ export default function SimulatePage() {
             input={input}
             address={address}
             errors={errors}
+            detectedRegionLabel={detectedRegionLabel}
+            thresholdDepositMax={thresholdDepositMax}
+            thresholdPriorityMax={thresholdPriorityMax}
             onAddressChange={setAddress}
+            onAddressSearch={handleAddressSearch}
             onInputChange={setInput}
             onRegionChange={(value) => {
               const nextRegion = parseRegion(value);
@@ -412,6 +498,8 @@ export default function SimulatePage() {
 
           <OptionalSection
             input={input}
+            errors={errors}
+            hasMyTenant={hasMyTenant}
             onInputChange={setInput}
             onAddOtherTenant={addOtherTenant}
             onUpdateOtherTenant={updateOtherTenant}
@@ -426,14 +514,18 @@ export default function SimulatePage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setInput(defaultSimulationInput);
                     setAppraisalValue(0);
                     setAddress("");
+                    setDetectedRegionLabel(null);
                     setIsSold(false);
                     setBidRateOption("none");
                     setErrors({});
                     setConfirmReset(false);
                     setActiveSource(null);
+                    setInput({
+                      ...defaultSimulationInput,
+                      otherTenants: defaultVisibleOtherTenants([]),
+                    });
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="px-5 py-2 rounded-xl bg-error text-white text-sm font-medium hover:bg-error/80 transition-colors cursor-pointer"

@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import type { ISimulationInput } from "@/types/simulation";
+import type { ISimulationInput, ISimulationResult } from "@/types/simulation";
 
 // ── 라벨 맵 ──
 
@@ -66,11 +66,6 @@ function thinBorder() {
   return { top: side, bottom: side, left: side, right: side };
 }
 
-function applyStyle(ws: XLSX.WorkSheet, ref: string, style: Record<string, unknown>) {
-  if (!ws[ref]) ws[ref] = { v: "", t: "s" };
-  ws[ref].s = style;
-}
-
 // ── 공통 빌드 로직 ──
 
 interface IColumnDef {
@@ -103,6 +98,17 @@ const TENANT_COLUMNS: IColumnDef[] = [
   { header: "대항력 발생일 *", desc: "필수 · YYYY-MM-DD", width: 18 },
   { header: "점유 여부", desc: "선택 · 예/아니오", width: 12 },
 ];
+
+const RESULT_COLUMNS: IColumnDef[] = [
+  { header: "순서", desc: "배당 단계", width: 14 },
+  { header: "구분", desc: "권리 분류", width: 18 },
+  { header: "채권자", desc: "권리자 이름", width: 20 },
+  { header: "일자", desc: "기준일자", width: 16 },
+  { header: "채권액", desc: "원", width: 18 },
+  { header: "배당액", desc: "원", width: 18 },
+  { header: "잔액", desc: "배당 후 잔액", width: 18 },
+  { header: "비고", desc: "계산 메모", width: 28 },
+] as const;
 
 const buildSheet = (
   wb: XLSX.WorkBook,
@@ -170,12 +176,10 @@ const buildSheet = (
 
 // ── 데이터 → 엑셀 ──
 
-export const downloadSimulationExcel = (
+const appendSimulationInputSheets = (
+  wb: XLSX.WorkBook,
   input: ISimulationInput,
-  filename = "배당시뮬레이션_데이터"
 ) => {
-  const wb = XLSX.utils.book_new();
-
   // 기본정보 + 근저당 (1행)
   const basicRow = [
     input.salePrice,
@@ -219,6 +223,58 @@ export const downloadSimulationExcel = (
     { title: "세입자", columns: TENANT_COLUMNS, rows: [myRow, ...otherRows], isGreen: true },
   ]);
 
+};
+
+export const buildSimulationInputWorkbook = (input: ISimulationInput): XLSX.WorkBook => {
+  const wb = XLSX.utils.book_new();
+  appendSimulationInputSheets(wb, input);
+  return wb;
+};
+
+const appendSimulationResultSheet = (
+  wb: XLSX.WorkBook,
+  result: ISimulationResult,
+) => {
+  const resultRows = result.rows.map((row) => [
+    row.step,
+    row.category,
+    row.creditorName,
+    row.keyDate ?? "",
+    row.claimAmount,
+    row.distributedAmount,
+    row.remainingPool,
+    row.note ?? "",
+  ]);
+
+  buildSheet(wb, "배당 결과", [
+    { title: "배당 결과", columns: RESULT_COLUMNS, rows: resultRows, isGreen: true },
+  ]);
+};
+
+export const buildSimulationResultWorkbook = (
+  input: ISimulationInput,
+  result: ISimulationResult,
+): XLSX.WorkBook => {
+  const wb = XLSX.utils.book_new();
+  appendSimulationInputSheets(wb, input);
+  appendSimulationResultSheet(wb, result);
+  return wb;
+};
+
+export const downloadSimulationExcel = (
+  input: ISimulationInput,
+  filename = "배당시뮬레이션_데이터"
+) => {
+  const wb = buildSimulationInputWorkbook(input);
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+};
+
+export const downloadSimulationResultExcel = (
+  input: ISimulationInput,
+  result: ISimulationResult,
+  filename = "배당시뮬레이션_결과"
+) => {
+  const wb = buildSimulationResultWorkbook(input, result);
   XLSX.writeFile(wb, `${filename}.xlsx`);
 };
 

@@ -1,8 +1,5 @@
-import type {
-  IDistributionRow,
-  IOtherTenant,
-  ISimulationInput,
-} from "@/types/simulation";
+import { hasMyTenantInput } from "@/app/simulate/helpers";
+import type { IDistributionRow, IOtherTenant, ISimulationInput } from "@/types/simulation";
 
 export const formatResultAmount = (amount: number) => amount.toLocaleString("ko-KR");
 
@@ -38,6 +35,7 @@ export const formatPercentage = (part: number, total: number) =>
 export const buildPlaceholderRows = (
   input: ISimulationInput
 ): IDistributionRow[] => {
+  const hasMyTenant = hasMyTenantInput(input);
   const otherStep1Rows = input.otherTenants
     .filter((otherTenant: IOtherTenant) => otherTenant.deposit > 0)
     .map((otherTenant: IOtherTenant, index: number) => ({
@@ -115,32 +113,40 @@ export const buildPlaceholderRows = (
       remainingPool: 0,
       isMyTenant: false,
     },
-    {
-      step: "STEP 1",
-      category: "최선순위 소액임차인",
-      creditorId: "my_tenant",
-      creditorName: "나의 임차권",
-      claimAmount: input.myDeposit,
-      distributedAmount: 0,
-      remainingPool: 0,
-      isMyTenant: true,
-      keyDate: input.myOpposabilityDate || undefined,
-      note: "소액임차인 해당 여부는 엔진 계산 필요",
-    },
+    ...(hasMyTenant
+      ? [
+          {
+            step: "STEP 1",
+            category: "최선순위 소액임차인",
+            creditorId: "my_tenant",
+            creditorName: "나의 임차권",
+            claimAmount: input.myDeposit,
+            distributedAmount: 0,
+            remainingPool: 0,
+            isMyTenant: true,
+            keyDate: input.myOpposabilityDate || undefined,
+            note: "소액임차인 해당 여부는 엔진 계산 필요",
+          },
+        ]
+      : []),
     ...otherStep1Rows,
     ...propertyTaxRows,
     ...mortgageRows,
-    {
-      step: "STEP 3",
-      category: "확정일자 임차인",
-      creditorId: "my_tenant_step3",
-      creditorName: "나의 임차권",
-      claimAmount: input.myDeposit,
-      distributedAmount: 0,
-      remainingPool: 0,
-      isMyTenant: true,
-      keyDate: input.myOpposabilityDate || undefined,
-    },
+    ...(hasMyTenant
+      ? [
+          {
+            step: "STEP 3",
+            category: "확정일자 임차인",
+            creditorId: "my_tenant_step3",
+            creditorName: "나의 임차권",
+            claimAmount: input.myDeposit,
+            distributedAmount: 0,
+            remainingPool: 0,
+            isMyTenant: true,
+            keyDate: input.myOpposabilityDate || undefined,
+          },
+        ]
+      : []),
     ...otherStep3Rows,
   ];
 };

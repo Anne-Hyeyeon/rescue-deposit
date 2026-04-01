@@ -18,6 +18,16 @@ const STORE_TO_ENGINE_REGION: Record<StoreRegion, Region> = {
   others: "others",
 };
 
+const ENGINE_TO_STORE_REGION: Record<Region, StoreRegion> = {
+  seoul: "seoul",
+  overcrowded: "metropolitan_overcrowded",
+  metropolitan: "metropolitan",
+  others: "others",
+};
+
+export const mapEngineToStoreRegion = (engineRegion: Region): StoreRegion =>
+  ENGINE_TO_STORE_REGION[engineRegion];
+
 const STEP_LABELS: Record<string, string> = {
   STEP1: "STEP 1",
   STEP2: "STEP 2",

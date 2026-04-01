@@ -1,11 +1,12 @@
 "use client";
 
 import {
-  AccordionSection,
+  Card,
   DateInput,
   FieldLabel,
   MoneyInput,
   OtherTenantRow,
+  SectionTitle,
   WarningChip,
 } from "@/app/simulate/components/form-primitives";
 import type { PropertyTaxOption } from "@/types/simulation";
@@ -20,27 +21,41 @@ const PROPERTY_TAX_OPTIONS: ReadonlyArray<readonly [PropertyTaxOption, string]> 
 
 export const OptionalSection = ({
   input,
+  errors,
+  hasMyTenant,
   onInputChange,
   onAddOtherTenant,
   onUpdateOtherTenant,
   onRemoveOtherTenant,
 }: IOptionalSectionProps) => (
-  <div>
-    <p className="mb-3 text-xs font-medium uppercase tracking-widest text-sub-text">
-      Section 4
-    </p>
-    <div className="flex flex-col gap-3">
-      <AccordionSection
-        title="다른 세입자 정보 (선택)"
-        forceOpen={input.otherTenants.length > 0}
-      >
-        <p className="mb-3 mt-2 text-sm leading-relaxed text-sub-text">
-          같은 건물의 다른 세입자 정보를 추가하면 소액임차인 경합 시 더 정확한 결과를 얻을 수 있어요.
-        </p>
+  <Card>
+    <SectionTitle
+      step="Section 4"
+      title="세입자 정보 및 재산세"
+      sub="본인 보증금이 없으면 세입자 정보를 1명 이상 입력해야 계산할 수 있어요."
+    />
+
+    <div className="flex flex-col gap-6">
+      <section id="other-tenants-section">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
+              다른 세입자 정보 {hasMyTenant ? "(선택)" : "(필수)"}
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-sub-text">
+              같은 건물의 다른 세입자 정보를 추가하면 소액임차인 경합 시 더 정확한 결과를 얻을 수 있어요.
+            </p>
+          </div>
+        </div>
         <WarningChip>
           <strong>배당요구를 한 세입자만</strong> 추가하세요. 배당요구를 하지 않은 세입자는
           경매 절차에서 배당 대상이 아니므로 여기에 입력하면 결과가 부정확해집니다.
         </WarningChip>
+        {errors.otherTenants && (
+          <p className="mt-2 text-xs text-error" role="alert">
+            {errors.otherTenants}
+          </p>
+        )}
         <div className="mt-4">
           {input.otherTenants.map((otherTenant, index) => (
             <OtherTenantRow
@@ -59,13 +74,11 @@ export const OptionalSection = ({
         >
           + 세입자 추가
         </button>
-      </AccordionSection>
+      </section>
 
-      <AccordionSection
-        title="재산세 / 당해세 (선택)"
-        forceOpen={input.propertyTaxOption === "yes"}
-      >
-        <p className="mb-4 mt-2 text-sm leading-relaxed text-sub-text">
+      <section>
+        <h3 className="text-sm font-semibold text-foreground">재산세 / 당해세 (선택)</h3>
+        <p className="mb-4 mt-1 text-sm leading-relaxed text-sub-text">
           재산세(당해세)가 있을 경우 배당 순위에 영향을 줄 수 있어요.
         </p>
         <fieldset>
@@ -111,7 +124,7 @@ export const OptionalSection = ({
             </div>
           </div>
         )}
-      </AccordionSection>
+      </section>
     </div>
-  </div>
+  </Card>
 );

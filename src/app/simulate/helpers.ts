@@ -12,7 +12,8 @@ type SimulationFormErrorField =
   | "myDeposit"
   | "myOpposabilityDate"
   | "mortgageRegDate"
-  | "mortgageMaxClaim";
+  | "mortgageMaxClaim"
+  | "otherTenants";
 
 export type SimulationFormErrors = Partial<
   Record<SimulationFormErrorField, string>
@@ -159,6 +160,55 @@ export const DEMO_SIMULATION_INPUT_3 = {
 
 export const DEMO_SIMULATION_ADDRESS_3 = "";
 
+// Fourth demo case - Real auction case (2020 mortgage, 25 tenants, no my deposit)
+export const DEMO_SIMULATION_INPUT_4 = {
+  salePrice: 2_010_000_000,
+  executionCost: 11_055_000,
+  appraisalValue: 0,
+  myName: "",
+  myDeposit: 0,
+  myOpposabilityDate: "",
+  myHasOccupancy: true,
+  mortgageName: "근저당권자",
+  mortgagePrincipal: 866_000_000,
+  mortgageMaxClaim: 866_000_000,
+  mortgageRegDate: "2020-09-03",
+  propertyType: "multi_family",
+  region: "seoul",
+  propertyTaxOption: "unknown",
+  propertyTaxAmount: 0,
+  propertyTaxLegalDate: "",
+  otherTenants: [
+    { id: "t4-01", name: "정○○(503)", deposit: 130_000_000, opposabilityDate: "2020-09-04", hasOccupancy: true },
+    { id: "t4-02", name: "조○○(505)", deposit: 100_000_000, opposabilityDate: "2020-09-27", hasOccupancy: true },
+    { id: "t4-03", name: "서○○(304)", deposit: 90_000_000, opposabilityDate: "2020-11-20", hasOccupancy: true },
+    { id: "t4-04", name: "최○○(201)", deposit: 40_000_000, opposabilityDate: "2020-11-14", hasOccupancy: true },
+    { id: "t4-05", name: "최○○(202)", deposit: 60_000_000, opposabilityDate: "2020-11-23", hasOccupancy: true },
+    { id: "t4-06", name: "김○○(504)", deposit: 140_000_000, opposabilityDate: "2020-09-04", hasOccupancy: true },
+    { id: "t4-07", name: "표○○(205)", deposit: 50_000_000, opposabilityDate: "2020-12-05", hasOccupancy: true },
+    { id: "t4-08", name: "김○○(506)", deposit: 100_000_000, opposabilityDate: "2020-09-04", hasOccupancy: true },
+    { id: "t4-09", name: "김○○(104)", deposit: 70_000_000, opposabilityDate: "2020-12-01", hasOccupancy: true },
+    { id: "t4-10", name: "안○○(404)", deposit: 90_000_000, opposabilityDate: "2022-03-03", hasOccupancy: true },
+    { id: "t4-11", name: "홍○○(406)", deposit: 110_000_000, opposabilityDate: "2022-06-29", hasOccupancy: true },
+    { id: "t4-12", name: "박○○(405)", deposit: 110_000_000, opposabilityDate: "2022-07-27", hasOccupancy: true },
+    { id: "t4-13", name: "김○○(403)", deposit: 110_000_000, opposabilityDate: "2022-07-14", hasOccupancy: true },
+    { id: "t4-14", name: "이○○(305)", deposit: 110_000_000, opposabilityDate: "2020-11-01", hasOccupancy: true },
+    { id: "t4-15", name: "고○○(401)", deposit: 120_000_000, opposabilityDate: "2022-07-04", hasOccupancy: true },
+    { id: "t4-16", name: "박○○(101)", deposit: 120_000_000, opposabilityDate: "2022-09-07", hasOccupancy: true },
+    { id: "t4-17", name: "이○○(303)", deposit: 100_000_000, opposabilityDate: "2022-10-04", hasOccupancy: true },
+    { id: "t4-18", name: "신○○(302)", deposit: 110_000_000, opposabilityDate: "2022-10-04", hasOccupancy: true },
+    { id: "t4-19", name: "손○○(501)", deposit: 120_000_000, opposabilityDate: "2022-10-06", hasOccupancy: true },
+    { id: "t4-20", name: "최○○(402)", deposit: 90_000_000, opposabilityDate: "2022-11-09", hasOccupancy: true },
+    { id: "t4-21", name: "황○○(306)", deposit: 105_000_000, opposabilityDate: "2022-11-20", hasOccupancy: true },
+    { id: "t4-22", name: "장○○(301)", deposit: 100_000_000, opposabilityDate: "2023-02-10", hasOccupancy: true },
+    { id: "t4-23", name: "황○○(204)", deposit: 50_000_000, opposabilityDate: "2023-03-09", hasOccupancy: true },
+    { id: "t4-24", name: "배○○(502)", deposit: 150_000_000, opposabilityDate: "2023-03-22", hasOccupancy: true },
+    { id: "t4-25", name: "신○○(103)", deposit: 30_000_000, opposabilityDate: "2023-07-17", hasOccupancy: true },
+  ],
+} satisfies ISimulationInput;
+
+export const DEMO_SIMULATION_ADDRESS_4 = "서울특별시 강서구";
+
 export const formatKRW = (amount: number) =>
   amount >= 100_000_000
     ? `${(amount / 100_000_000).toFixed(1)}억`
@@ -184,6 +234,29 @@ export const createEmptyOtherTenant = (): IOtherTenant => ({
   hasOccupancy: true,
 });
 
+export const hasMyTenantInput = (input: ISimulationInput): boolean =>
+  input.myDeposit > 0 && Boolean(input.myOpposabilityDate);
+
+export const hasValidOtherTenant = (tenant: IOtherTenant): boolean =>
+  tenant.deposit > 0 && Boolean(tenant.opposabilityDate);
+
+export const defaultVisibleOtherTenants = (
+  otherTenants: IOtherTenant[],
+): IOtherTenant[] => (otherTenants.length > 0 ? otherTenants : [createEmptyOtherTenant()]);
+
+export const canAccessSimulationResult = (input: ISimulationInput): boolean =>
+  Object.keys(validateSimulationInput(input)).length === 0;
+
+export const buildResultViewModel = (input: ISimulationInput) => {
+  const hasMyInput = hasMyTenantInput(input);
+
+  return {
+    showHero: hasMyInput,
+    showRiskPanel: hasMyInput,
+    highlightMyTenant: hasMyInput,
+  };
+};
+
 export const upsertOtherTenant = (
   otherTenants: IOtherTenant[],
   tenantId: string,
@@ -199,17 +272,17 @@ export const validateSimulationInput = (
   input: ISimulationInput
 ): SimulationFormErrors => {
   const errors: SimulationFormErrors = {};
+  const hasPersonalInput = hasMyTenantInput(input);
+  const hasOtherTenantInput = input.otherTenants.some(hasValidOtherTenant);
 
   if (!input.salePrice || input.salePrice <= 0) {
     errors.salePrice = "매각대금을 입력해주세요";
   }
 
-  if (!input.myDeposit || input.myDeposit <= 0) {
-    errors.myDeposit = "보증금을 입력해주세요";
-  }
-
-  if (!input.myOpposabilityDate) {
+  if (input.myDeposit > 0 && !input.myOpposabilityDate) {
     errors.myOpposabilityDate = "대항력 발생일을 입력해주세요";
+  } else if (!hasPersonalInput && !hasOtherTenantInput) {
+    errors.otherTenants = "다른 세입자 정보를 1명 이상 입력해주세요";
   }
 
   if (!input.mortgageRegDate) {
