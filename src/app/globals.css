@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ===== Light Theme (Default) ===== */
 :root {
   --background: #fafafa;
@@ -12,6 +14,7 @@
   --muted: #888888;
   --divider: #e4e4e7;
   --accent: #4d7c6f;
+  --accent-solid: #4d7c6f;
   --accent-bg: #f0fdf4;
   --error: #c0392b;
   --error-bg: #fef2f2;
@@ -28,8 +31,9 @@
   --badge-bg: #27272a;
   --hover-bg: #27272a;
   --muted: #71717a;
-  --accent: #86efac;
-  --accent-bg: #052e16;
+  --accent: #6dc9a0;
+  --accent-solid: #3a8c6e;
+  --accent-bg: #0a2618;
   --divider: #27272a;
   --error: #f87171;
   --error-bg: #450a0a;
@@ -45,6 +49,7 @@
   --color-badge-bg: var(--badge-bg);
   --color-hover-bg: var(--hover-bg);
   --color-accent: var(--accent);
+  --color-accent-solid: var(--accent-solid);
   --color-accent-bg: var(--accent-bg);
   --color-muted: var(--muted);
   --color-divider: var(--divider);
