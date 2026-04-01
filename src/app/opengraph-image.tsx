@@ -52,12 +52,12 @@ export default function OGImage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 24,
+            gap: 32,
           }}
         >
           <div
             style={{
-              fontSize: 64,
+              fontSize: 80,
               fontWeight: 800,
               color: "#fafafa",
               letterSpacing: "-0.03em",
@@ -79,7 +79,7 @@ export default function OGImage() {
           />
           <div
             style={{
-              fontSize: 26,
+              fontSize: 34,
               color: "#6dc9a0",
               fontWeight: 600,
               letterSpacing: "-0.01em",
@@ -91,7 +91,7 @@ export default function OGImage() {
           </div>
           <div
             style={{
-              fontSize: 22,
+              fontSize: 28,
               color: "#a1a1aa",
               textAlign: "center",
               display: "flex",
@@ -101,7 +101,7 @@ export default function OGImage() {
           </div>
           <div
             style={{
-              fontSize: 16,
+              fontSize: 22,
               color: "#71717a",
               textAlign: "center",
               display: "flex",
@@ -125,7 +125,7 @@ export default function OGImage() {
             background: "rgba(77, 124, 111, 0.1)",
           }}
         >
-          <div style={{ fontSize: 14, color: "#6dc9a0", display: "flex" }}>
+          <div style={{ fontSize: 16, color: "#6dc9a0", display: "flex" }}>
             rescue-deposit.vercel.app
           </div>
         </div>
