@@ -1,7 +1,7 @@
 import { Card } from "./Card";
 
 export const AssumptionsBanner = () => (
-  <Card className="border-yellow-200 bg-yellow-50/50 dark:border-yellow-800/40 dark:bg-yellow-900/10">
+  <Card className="border-yellow-200 bg-yellow-50/50 dark:border-card-border dark:bg-card-bg">
     <div className="flex items-start gap-3">
       <svg
         width="18"
@@ -10,7 +10,7 @@ export const AssumptionsBanner = () => (
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400"
+        className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-500/80"
         aria-hidden="true"
       >
         <circle cx="12" cy="12" r="10" />
@@ -18,10 +18,10 @@ export const AssumptionsBanner = () => (
         <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <div>
-        <p className="mb-2 text-sm font-semibold text-yellow-800 dark:text-yellow-300">
+        <p className="mb-2 text-sm font-semibold text-yellow-800 dark:text-foreground">
           시뮬레이션 전제 조건
         </p>
-        <ul className="space-y-1.5 text-xs leading-relaxed text-yellow-700 dark:text-yellow-400">
+        <ul className="space-y-1.5 text-xs leading-relaxed text-yellow-700 dark:text-sub-text">
           <li className="flex items-start gap-1.5">
             <span className="mt-0.5 shrink-0">&#8226;</span>
             <span>
