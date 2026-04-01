@@ -174,7 +174,7 @@ export default function SimulateResultPage() {
         />
 
         <Legend showMyTenant={resultView.highlightMyTenant} />
-        <ActionLinksPanel />
+        {/* <ActionLinksPanel /> */}
         <ResultDisclaimer />
       </div>
     </div>

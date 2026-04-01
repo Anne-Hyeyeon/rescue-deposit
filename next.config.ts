@@ -10,6 +10,14 @@ const withPWA = require("next-pwa")({
 const nextConfig: NextConfig = {
   // Turbopack 설정 (dev 모드에서 빈 설정으로 webpack config 충돌 방지)
   turbopack: {},
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
+  },
 };
 
 export default withPWA(nextConfig);
