@@ -12,6 +12,7 @@ import { parsePropertyType, parseRegion } from "@/app/simulate/helpers";
 import { useSimulationForm } from "@/app/simulate/hooks/useSimulationForm";
 import { DEMO_CASES, VISIBLE_DEMO_KEYS, PROD_DEMO } from "@/app/simulate/constants/demo-cases";
 import { DemoSourceButton, MyDataButton } from "@/app/simulate/components/DemoSourceButton";
+import { DisclaimerSheet } from "@/app/simulate/components/DisclaimerSheet";
 
 export default function SimulatePage() {
   const form = useSimulationForm();
@@ -197,6 +198,8 @@ export default function SimulatePage() {
           </p>
         </div>
       </form>
+
+      <DisclaimerSheet />
     </div>
   );
 }
