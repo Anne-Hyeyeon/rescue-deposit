@@ -12,23 +12,20 @@ export const CategoryBadge = ({ category }: ICategoryBadgeProps) => {
 
   return (
     <span
-      className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${
+      className={`inline-flex flex-col items-center sm:inline rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight text-center ${
         categoryColors[category] ?? "bg-badge-bg text-muted"
       }`}
     >
       {wrap ? (
         <>
-          <span className="hidden sm:inline">
+          <span className="hidden sm:inline whitespace-nowrap">
             {wrap[0]} {wrap[1]}
           </span>
-          <span className="sm:hidden">
-            {wrap[0]}
-            <br />
-            {wrap[1]}
-          </span>
+          <span className="sm:hidden whitespace-nowrap">{wrap[0]}</span>
+          <span className="sm:hidden whitespace-nowrap">{wrap[1]}</span>
         </>
       ) : (
-        category
+        <span className="whitespace-nowrap">{category}</span>
       )}
     </span>
   );

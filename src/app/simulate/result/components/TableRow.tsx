@@ -41,11 +41,6 @@ export const TableRow = ({ row, index, hasResult }: ITableRowProps) => {
             {row.creditorName}
           </span>
         </div>
-        {row.note && (
-          <p className="mt-0.5 text-[10px] leading-tight text-muted">
-            {row.note}
-          </p>
-        )}
       </td>
       <td className="whitespace-nowrap px-1.5 py-2.5 text-center text-xs tabular-nums text-sub-text">
         {row.keyDate ?? "\u2014"}

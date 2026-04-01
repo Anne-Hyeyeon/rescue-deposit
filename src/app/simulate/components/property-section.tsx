@@ -43,7 +43,7 @@ export const PropertySection = ({
       <div>
         <FieldLabel htmlFor="address">건물 주소</FieldLabel>
         <div className="flex items-center gap-2">
-          <div className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground min-h-[42px] flex items-center">
+          <div className="flex-1 rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground min-h-11 flex items-center">
             {address ? (
               <span>{address}</span>
             ) : (

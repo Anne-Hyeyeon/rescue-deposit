@@ -7,7 +7,9 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { downloadSimulationExcel, downloadTemplate } from "@/lib/excel/generator";
 import { useNickname } from "@/app/mypage/hooks/useNickname";
 import { useSimulationData } from "@/app/mypage/hooks/useSimulationData";
+import { useSharedResults } from "@/app/mypage/hooks/useSharedResults";
 import { SimDataCard } from "@/app/mypage/components/SimDataCard";
+import { SharedResultCard } from "@/app/mypage/components/SharedResultCard";
 
 export default function MyPage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function MyPage() {
 
   const nick = useNickname(user);
   const simData = useSimulationData(user);
+  const sharedResults = useSharedResults(user);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login?redirect=/mypage");
@@ -84,7 +87,7 @@ export default function MyPage() {
                 placeholder="닉네임 입력"
                 aria-invalid={nick.message?.type === "error"}
                 aria-describedby="nickname-msg"
-                className="w-48 px-4 py-3 rounded-xl border bg-card-bg text-sm focus:outline-none transition-colors aria-[invalid=true]:border-error border-card-border focus:border-foreground/40"
+                className="w-full sm:w-48 px-4 py-3 rounded-xl border bg-card-bg text-sm focus:outline-none transition-colors aria-[invalid=true]:border-error border-card-border focus:border-foreground/40"
               />
               <button
                 type="button"
@@ -206,6 +209,52 @@ export default function MyPage() {
                 aria-label="엑셀 파일 업로드"
               />
             </div>
+          )}
+        </section>
+
+        {/* 결과지 관리 */}
+        <section className="py-8">
+          <h2 className="text-xs font-semibold text-muted uppercase tracking-widest mb-4">
+            결과지 관리
+          </h2>
+
+          {sharedResults.message && (
+            <div
+              className={`mb-4 text-xs font-medium px-3 py-2 rounded-lg w-fit ${
+                sharedResults.message.type === "error"
+                  ? "text-error bg-error-bg"
+                  : "text-accent bg-accent-bg"
+              }`}
+              role="alert"
+            >
+              {sharedResults.message.text}
+            </div>
+          )}
+
+          {sharedResults.loading ? (
+            <div className="flex items-center gap-2 py-6 text-sm text-sub-text">
+              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-20" />
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              불러오는 중...
+            </div>
+          ) : sharedResults.dataList.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {sharedResults.dataList.map((item) => (
+                <SharedResultCard
+                  key={item.id}
+                  item={item}
+                  deleting={sharedResults.deletingId === item.id}
+                  onCopyLink={() => sharedResults.handleCopyLink(item.share_id)}
+                  onDelete={() => sharedResults.handleDelete(item.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-sub-text py-4">
+              공유한 결과지가 없습니다. 배당 시뮬레이션 결과 페이지에서 공유 버튼을 눌러보세요.
+            </p>
           )}
         </section>
 

@@ -41,8 +41,8 @@ export const DistributionTable = ({
       </div>
     </div>
 
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-sm">
+    <div className="table-scroll">
+      <table className="w-full min-w-lg sm:min-w-2xl text-sm">
         <thead>
           <tr className="border-b border-divider bg-badge-bg/60">
             <th className="w-6 px-2 py-2 text-center text-xs font-medium text-muted">
@@ -81,14 +81,7 @@ export const DistributionTable = ({
       </table>
     </div>
 
-    {hasResult ? (
-      <div className="flex items-center justify-between border-t border-divider bg-badge-bg/40 px-5 py-3">
-        <span className="text-xs text-sub-text">최종 잔여금 (소유자 반환)</span>
-        <span className="text-sm font-semibold text-foreground tabular-nums">
-          {formatResultAmount(remainingBalance)}원
-        </span>
-      </div>
-    ) : (
+    {!hasResult && (
       <div className="border-t border-divider px-5 py-4">
         <p className="text-center text-xs text-muted">
           ※ 배당액 &middot; 잔액 칼럼은 엔진 재구축 후 자동으로 채워집니다.
