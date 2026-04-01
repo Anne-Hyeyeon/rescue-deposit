@@ -21,11 +21,29 @@ export function Header() {
   const signOut = useAuthStore((s) => s.signOut);
   const pathname = usePathname();
   const menu = useMobileMenu();
+  const isSharePage = pathname.startsWith("/share");
 
   const navItems = useMemo(
     () => [...PUBLIC_NAV, ...(user ? AUTH_NAV : [])],
     [user],
   );
+
+  // Minimal header for shared result pages
+  if (isSharePage) {
+    return (
+      <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-divider">
+        <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link
+            href="/"
+            className="font-bold text-base tracking-tight text-foreground hover:opacity-70 transition-opacity duration-200"
+          >
+            절대지켜
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-divider">

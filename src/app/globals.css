@@ -99,9 +99,22 @@ a {
   color: var(--background);
 }
 
+/* ===== Table horizontal scroll (always visible on mobile) ===== */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .table-scroll {
+    overflow-x: scroll;
+  }
+}
+
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {

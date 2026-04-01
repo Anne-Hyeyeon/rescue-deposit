@@ -7,4 +7,5 @@ export {
   Legend,
   ActionLinksPanel,
   ResultDisclaimer,
+  ResultActions,
 } from "./components/index";

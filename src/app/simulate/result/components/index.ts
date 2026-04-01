@@ -8,3 +8,4 @@ export { DistributionTable } from "./DistributionTable";
 export { Legend } from "./Legend";
 export { ActionLinksPanel } from "./ActionLinksPanel";
 export { ResultDisclaimer } from "./ResultDisclaimer";
+export { ResultActions } from "./ShareButton";
