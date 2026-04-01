@@ -87,6 +87,7 @@ describe("buildSimulationResultWorkbook", () => {
       "잔액",
       "비고",
     ]);
+    // Row 0=header, Row 1=desc, Row 2+=data (result sheet has no notice row)
     expect(rows[2]).toEqual([
       "집행비용",
       "집행비용",
