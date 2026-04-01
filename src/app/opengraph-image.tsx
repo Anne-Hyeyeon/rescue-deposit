@@ -79,9 +79,20 @@ export default function OGImage() {
           />
           <div
             style={{
-              fontSize: 28,
-              color: "#a1a1aa",
+              fontSize: 26,
+              color: "#6dc9a0",
+              fontWeight: 600,
               letterSpacing: "-0.01em",
+              textAlign: "center",
+              display: "flex",
+            }}
+          >
+            전세사기 배당금 계산기 · 배당 시뮬레이터
+          </div>
+          <div
+            style={{
+              fontSize: 22,
+              color: "#a1a1aa",
               textAlign: "center",
               display: "flex",
             }}
@@ -90,13 +101,13 @@ export default function OGImage() {
           </div>
           <div
             style={{
-              fontSize: 18,
+              fontSize: 16,
               color: "#71717a",
               textAlign: "center",
               display: "flex",
             }}
           >
-            다가구 전세사기 피해자가 직접 만든 배당금 계산기
+            다가구 전세사기 피해자가 직접 만든 사이트입니다
           </div>
         </div>
 
