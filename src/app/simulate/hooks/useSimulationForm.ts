@@ -26,7 +26,7 @@ import { mapEngineToStoreRegion, mapRegion } from "@/lib/engine/bridge-helpers";
 import type { IOtherTenant } from "@/types/simulation";
 import { defaultSimulationInput } from "@/types/simulation";
 
-import { DEMO_CASES, type DemoSource } from "../constants/demo-cases";
+import { DEMO_CASES, PROD_DEMO, getProdDemoInput, type DemoSource } from "../constants/demo-cases";
 
 export const useSimulationForm = () => {
   const router = useRouter();
@@ -91,6 +91,21 @@ export const useSimulationForm = () => {
     setBidRateOption("none");
     setErrors({});
     setActiveSource(demoCase);
+  };
+
+  const loadProdDemo = () => {
+    const demoInput = getProdDemoInput();
+    setInput({
+      ...demoInput,
+      otherTenants: defaultVisibleOtherTenants(demoInput.otherTenants),
+    });
+    setAddress(PROD_DEMO.address);
+    setAppraisalValue(PROD_DEMO.appraisalValue);
+    setAppraisalMode("known");
+    setIsSold(true);
+    setBidRateOption("none");
+    setErrors({});
+    setActiveSource("prod");
   };
 
   const loadMyData = useCallback(async () => {
@@ -161,7 +176,7 @@ export const useSimulationForm = () => {
 
     const firstErrorField = Object.keys(errs)[0];
     const fieldIdMap: Record<string, string> = {
-      salePrice: isSold ? "salePrice-sold" : appraisalMode === "known" ? "salePrice-sold" : "salePrice-unknown",
+      salePrice: isSold ? "salePrice-sold" : appraisalMode === "known" ? "salePrice-expected" : "salePrice-unknown",
       myDeposit: "myDeposit",
       myOpposabilityDate: "myOpposabilityDate",
       mortgageRegDate: "mortgageRegDate",
@@ -257,6 +272,7 @@ export const useSimulationForm = () => {
     removeOtherTenant,
     handleSubmit,
     loadDemo,
+    loadProdDemo,
     loadMyData,
     resetForm,
   };
