@@ -40,14 +40,18 @@ export const SimDataCard = ({
         </svg>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">
+      <button
+        type="button"
+        onClick={onDownload}
+        className="flex-1 min-w-0 text-left cursor-pointer"
+      >
+        <p className="text-sm font-medium text-foreground truncate hover:text-accent transition-colors">
           {item.title || "배당 데이터"}
         </p>
         <p className="text-xs text-sub-text mt-0.5">
           임차인 {tenantCount}명 &middot; {updatedLabel}
         </p>
-      </div>
+      </button>
 
       <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
         <button
