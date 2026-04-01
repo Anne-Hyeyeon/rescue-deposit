@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "절대지켜 - 보증금 미반환 대응 플랫폼";
+export const alt = "절대지켜 - 다가구 전세사기 배당금 계산기";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -96,7 +96,7 @@ export default function OGImage() {
               display: "flex",
             }}
           >
-            다가구 피해자가 직접 만든 보증금 미반환 대응 플랫폼
+            다가구 전세사기 피해자가 직접 만든 배당금 계산기
           </div>
         </div>
 

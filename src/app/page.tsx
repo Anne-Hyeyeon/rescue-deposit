@@ -25,7 +25,7 @@ const Home = () => {
             다시 되찾을때까지.
           </h1>
           <p className="text-sub-text text-base leading-relaxed max-w-sm mb-6">
-            다가구 피해자가 직접 만든 사이트입니다.
+            다가구 전세사기 피해자가 직접 만든 사이트입니다.
             <br />
             같은 아픔을 겪는 분들이 덜 헤매시길 바라며.
           </p>
