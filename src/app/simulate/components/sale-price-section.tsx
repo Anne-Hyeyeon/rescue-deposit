@@ -58,13 +58,13 @@ const AppraisalRateHelper = ({
 }: IAppraisalRateHelperProps) => (
   <div>
     <p className="mb-2 text-xs font-medium text-sub-text">낙찰가율로 자동 계산</p>
-    <div className="grid grid-cols-5 gap-2">
+    <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
       {BID_RATE_OPTIONS.map(([value, label]) => (
         <button
           key={value}
           type="button"
           onClick={() => onBidRateSelect(value, appraisalValue)}
-          className={`rounded-lg border py-2 text-xs font-medium transition-colors duration-150 ${bidRateOption === value ? "border-accent bg-accent-bg text-accent" : "border-card-border bg-background text-sub-text hover:border-accent/50"}`}
+          className={`rounded-lg border px-1 py-2 text-xs font-medium transition-colors duration-150 ${bidRateOption === value ? "border-accent bg-accent-bg text-accent" : "border-card-border bg-background text-sub-text hover:border-accent/50"}`}
         >
           {label}
         </button>
@@ -82,7 +82,7 @@ const AppraisalRateHelper = ({
           onChange={(event) =>
             onCustomBidRateChange(Number(event.target.value), appraisalValue)
           }
-          className="max-w-[100px]"
+          className="max-w-24"
         />
         <span className="text-sm text-sub-text">%</span>
       </div>

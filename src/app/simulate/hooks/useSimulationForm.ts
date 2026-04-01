@@ -30,11 +30,21 @@ import { DEMO_CASES, PROD_DEMO, getProdDemoInput, type DemoSource } from "../con
 
 export const useSimulationForm = () => {
   const router = useRouter();
-  const { input, setInput, setResult } = useSimulationStore();
+  const { input, setInput, setResult, reset: resetStore } = useSimulationStore();
   const user = useAuthStore((s) => s.user);
   const isAuthLoading = useAuthStore((s) => s.isLoading);
 
+  // 페이지 진입 시 store 초기화 (다른 페이지에서 돌아온 경우)
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    if (!initialized) {
+      resetStore();
+      setInitialized(true);
+    }
+  }, [initialized, resetStore]);
+
   const [loadingMyData, setLoadingMyData] = useState(false);
+  const [myDataEmpty, setMyDataEmpty] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [activeSource, setActiveSource] = useState<DemoSource>(null);
 
@@ -114,10 +124,11 @@ export const useSimulationForm = () => {
       return;
     }
     setLoadingMyData(true);
+    setMyDataEmpty(false);
     try {
       const list = await getSimulationDataList(user.id);
       if (list.length === 0) {
-        router.push("/mypage");
+        setMyDataEmpty(true);
         return;
       }
       const latest = list[0];
@@ -222,6 +233,21 @@ export const useSimulationForm = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const hasUnsavedInput =
+    input.myDeposit > 0 ||
+    input.mortgageMaxClaim > 0 ||
+    input.salePrice !== defaultSimulationInput.salePrice;
+
+  // 브라우저 탭 닫기 / 새로고침 경고
+  useEffect(() => {
+    if (!hasUnsavedInput) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedInput]);
+
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.replace("/login?redirect=/simulate");
@@ -255,6 +281,8 @@ export const useSimulationForm = () => {
     // data source
     activeSource,
     loadingMyData,
+    myDataEmpty,
+    hasUnsavedInput,
     confirmReset,
     // actions
     setInput,

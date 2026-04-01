@@ -13,9 +13,11 @@ import { useSimulationForm } from "@/app/simulate/hooks/useSimulationForm";
 import { DEMO_CASES, VISIBLE_DEMO_KEYS, PROD_DEMO } from "@/app/simulate/constants/demo-cases";
 import { DemoSourceButton, MyDataButton } from "@/app/simulate/components/DemoSourceButton";
 import { DisclaimerSheet } from "@/app/simulate/components/DisclaimerSheet";
+import { useNavigationGuard } from "@/app/simulate/hooks/useNavigationGuard";
 
 export default function SimulatePage() {
   const form = useSimulationForm();
+  useNavigationGuard(form.hasUnsavedInput);
 
   if (form.isAuthLoading || !form.user) return null;
 
@@ -37,6 +39,7 @@ export default function SimulatePage() {
           <MyDataButton
             isActive={form.activeSource === "my"}
             isLoading={form.loadingMyData}
+            isEmpty={form.myDataEmpty}
             onClick={form.loadMyData}
           />
           <DemoSourceButton
