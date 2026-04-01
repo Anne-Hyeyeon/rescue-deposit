@@ -10,10 +10,8 @@ import {
 } from "@/app/simulate/components/sections";
 import { parsePropertyType, parseRegion } from "@/app/simulate/helpers";
 import { useSimulationForm } from "@/app/simulate/hooks/useSimulationForm";
-import { DEMO_CASES } from "@/app/simulate/constants/demo-cases";
+import { DEMO_CASES, VISIBLE_DEMO_KEYS, PROD_DEMO } from "@/app/simulate/constants/demo-cases";
 import { DemoSourceButton, MyDataButton } from "@/app/simulate/components/DemoSourceButton";
-
-const DEMO_KEYS = [1, 2, 3, 4] as const;
 
 export default function SimulatePage() {
   const form = useSimulationForm();
@@ -40,7 +38,14 @@ export default function SimulatePage() {
             isLoading={form.loadingMyData}
             onClick={form.loadMyData}
           />
-          {DEMO_KEYS.map((key) => (
+          <DemoSourceButton
+            isActive={form.activeSource === "prod"}
+            onClick={form.loadProdDemo}
+            emoji={PROD_DEMO.emoji}
+            title={PROD_DEMO.title}
+            description={PROD_DEMO.description}
+          />
+          {VISIBLE_DEMO_KEYS.map((key) => (
             <DemoSourceButton
               key={key}
               isActive={form.activeSource === key}
@@ -187,6 +192,9 @@ export default function SimulatePage() {
             </svg>
             입력 정보를 엑셀로 저장
           </button>
+          <p className="text-center text-xs text-muted">
+            저장한 엑셀은 <a href="/mypage" className="text-accent underline underline-offset-2 hover:opacity-80 transition-opacity">마이페이지</a>에서 업로드하면 양식 대신 바로 사용할 수 있어요.
+          </p>
         </div>
       </form>
     </div>

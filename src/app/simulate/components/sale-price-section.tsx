@@ -180,6 +180,9 @@ export const SalePriceSection = ({
                   placeholder="400,000,000"
                   hasError={!!errors.salePrice}
                 />
+                {errors.salePrice && (
+                  <p className="mt-1 text-xs text-error">{errors.salePrice}</p>
+                )}
                 {input.salePrice > 0 && appraisalValue > 0 && (
                   <p className="mt-1 text-xs font-medium text-accent">
                     낙찰가율 {((input.salePrice / appraisalValue) * 100).toFixed(1)}%
@@ -197,6 +200,9 @@ export const SalePriceSection = ({
                     placeholder="400,000,000"
                     hasError={!!errors.salePrice}
                   />
+                  {errors.salePrice && (
+                    <p className="mt-1 text-xs text-error">{errors.salePrice}</p>
+                  )}
                 </div>
                 <AppraisalRateHelper
                   appraisalValue={appraisalValue}
