@@ -15,8 +15,20 @@ const notoSansKR = Noto_Sans_KR({
 
 export const metadata: Metadata = {
   title: "절대지켜",
-  description: "다가구 피해자가 직접 만든 보증금 정보 플랫폼",
+  description: "다가구 피해자가 직접 만든 보증금 미반환 대응 플랫폼",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "절대지켜",
+    description: "보증금, 다시 되찾을 때까지. 다가구 피해자가 직접 만든 보증금 미반환 대응 플랫폼",
+    siteName: "절대지켜",
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "절대지켜",
+    description: "보증금, 다시 되찾을 때까지.",
+  },
 };
 
 export const viewport: Viewport = {
