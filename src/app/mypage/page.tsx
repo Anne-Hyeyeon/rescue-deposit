@@ -153,9 +153,23 @@ export default function MyPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-card-border bg-card-bg p-6">
-              <p className="text-sm text-sub-text mb-4">
+              <p className="text-sm text-sub-text mb-3">
                 배당 시뮬레이션에 사용할 데이터를 엑셀로 관리할 수 있습니다.
               </p>
+              <div className="flex items-start gap-2.5 rounded-lg bg-accent-bg px-3.5 py-2.5 mb-4">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0 text-accent" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4" />
+                  <path d="M12 8h.01" />
+                </svg>
+                <div className="text-xs leading-relaxed text-accent space-y-1">
+                  <p>
+                    <a href="/simulate" className="font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity">배당 시뮬레이터</a>에서
+                    정보를 입력한 뒤 하단의 "엑셀로 저장" 버튼을 누르면, 양식 대신 사용할 수 있는 파일이 다운로드됩니다.
+                  </p>
+                  <p>저장한 데이터는 배당 시뮬레이터에서 바로 불러오기 가능합니다.</p>
+                </div>
+              </div>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
