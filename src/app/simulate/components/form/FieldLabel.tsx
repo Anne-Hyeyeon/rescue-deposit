@@ -25,7 +25,7 @@ export const FieldLabel = ({
           <button
             type="button"
             onClick={() => setShowInfo((value) => !value)}
-            className="flex h-4 w-4 items-center justify-center rounded-full bg-card-border text-[10px] font-bold text-muted transition-colors hover:bg-accent hover:text-white"
+            className="flex h-4 w-4 items-center justify-center rounded-full bg-card-border text-[10px] font-bold text-muted transition-colors hover:bg-accent-solid hover:text-white"
             aria-label="안내"
           >
             i

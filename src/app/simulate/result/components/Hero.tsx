@@ -14,7 +14,7 @@ interface IHeroProps {
 export const Hero = ({ myAmount, myDeposit, hasResult }: IHeroProps) => (
   <div
     className={`rounded-2xl p-6 ${
-      hasResult ? "bg-accent" : "border border-card-border bg-card-bg"
+      hasResult ? "bg-accent-solid" : "border border-card-border bg-card-bg"
     }`}
   >
     {hasResult ? (

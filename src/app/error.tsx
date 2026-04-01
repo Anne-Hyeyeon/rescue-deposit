@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: IErrorProps) {
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="text-yellow-600 dark:text-yellow-400"
+          className="text-yellow-600 dark:text-yellow-600"
           aria-hidden="true"
         >
           <circle cx="12" cy="12" r="10" />
@@ -35,7 +35,7 @@ export default function GlobalError({ error, reset }: IErrorProps) {
       <button
         type="button"
         onClick={reset}
-        className="px-6 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+        className="px-6 py-3 rounded-xl bg-accent-solid text-white text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
       >
         다시 시도
       </button>

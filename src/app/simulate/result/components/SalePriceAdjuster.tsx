@@ -122,7 +122,7 @@ export const SalePriceAdjuster = ({
                   onClick={() => onChange(target)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-accent text-white"
+                      ? "bg-accent-solid text-white"
                       : "border border-card-border bg-background text-sub-text hover:bg-hover-bg hover:text-foreground"
                   }`}
                 >

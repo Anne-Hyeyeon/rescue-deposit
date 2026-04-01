@@ -149,7 +149,7 @@ export default function SimulatePage() {
           ) : (
             <div className="flex gap-2">
               <button type="submit"
-                className="flex-1 py-4 rounded-2xl bg-accent text-white font-semibold text-base
+                className="flex-1 py-4 rounded-2xl bg-accent-solid text-white font-semibold text-base
                   hover:opacity-90 active:scale-[0.98] transition-all duration-150
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40
                   cursor-pointer shadow-sm">

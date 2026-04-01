@@ -11,7 +11,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="px-6 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity"
+        className="px-6 py-3 rounded-xl bg-accent-solid text-white text-sm font-medium hover:opacity-90 transition-opacity"
       >
         홈으로 돌아가기
       </Link>
