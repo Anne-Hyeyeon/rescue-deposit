@@ -39,8 +39,15 @@
   --error-bg: #450a0a;
 }
 
+/* ===== Animations ===== */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 /* ===== Tailwind Theme Tokens ===== */
 @theme inline {
+  --animate-slide-up: slide-up 0.3s ease-out;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card-bg: var(--card-bg);

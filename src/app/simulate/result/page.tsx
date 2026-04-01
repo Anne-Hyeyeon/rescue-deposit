@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,6 +15,7 @@ import {
   RiskPanel,
   SalePriceAdjuster,
 } from "@/app/simulate/result/components";
+import { BMC_URL } from "@/components/Footer";
 import {
   buildResultViewModel,
   canAccessSimulationResult,
@@ -177,6 +179,27 @@ export default function SimulateResultPage() {
         {/* <ActionLinksPanel /> */}
         <ResultDisclaimer />
       </div>
+
+      {hasResult && (
+        <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-card-border bg-card-bg p-6">
+          <p className="text-sm text-sub-text text-center">
+            도움이 되셨다면, 커피 한 잔의 응원이 큰 힘이 됩니다.
+          </p>
+          <a
+            href={BMC_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              src="/bmc-button.png"
+              alt="Buy me a coffee"
+              width={180}
+              height={50}
+              className="rounded-lg hover:opacity-80 transition-opacity duration-200"
+            />
+          </a>
+        </div>
+      )}
     </div>
   );
 }
