@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createSharedResult, deleteSharedResult, getSharedResultsByUserId } from "@/lib/supabase/shared-results";
@@ -13,18 +13,27 @@ type Status = "idle" | "saving" | "saved" | "copied" | "error";
 interface IResultActionsProps {
   input: ISimulationInput;
   result: ISimulationResult;
+  hasAiExplanation?: boolean;
+  aiExplanationText?: string;
 }
 
-export const ResultActions = ({ input, result }: IResultActionsProps) => {
+export const ResultActions = ({ input, result, hasAiExplanation = false, aiExplanationText }: IResultActionsProps) => {
   const user = useAuthStore((s) => s.user);
   const [status, setStatus] = useState<Status>("idle");
   const [savedShareId, setSavedShareId] = useState<string | null>(null);
   const [showMyInfo, setShowMyInfo] = useState(true);
+  const [showAiExplanation, setShowAiExplanation] = useState(hasAiExplanation);
+  const [customTitle, setCustomTitle] = useState("");
   const [showLoginHint, setShowLoginHint] = useState(false);
+
+  // 해설이 생성되면 자동으로 포함 체크
+  useEffect(() => {
+    if (hasAiExplanation) setShowAiExplanation(true);
+  }, [hasAiExplanation]);
 
   const requireLogin = () => {
     setShowLoginHint(true);
-    setTimeout(() => setShowLoginHint(false), 3000);
+    setTimeout(() => setShowLoginHint(false), 5000);
   };
 
   const ensureSaved = async (forceNew = false): Promise<string | null> => {
@@ -32,6 +41,12 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
     if (savedShareId && !forceNew) return savedShareId;
 
     const existing = await getSharedResultsByUserId(user.id);
+
+    // 이전 저장본이 있으면 삭제 (옵션 변경 시)
+    if (savedShareId) {
+      const prev = existing.find((e) => e.share_id === savedShareId);
+      if (prev) await deleteSharedResult(prev.id, user.id);
+    }
     if (existing.length >= MAX_SHARED_RESULTS) {
       const oldest = existing[existing.length - 1];
       await deleteSharedResult(oldest.id, user.id);
@@ -39,7 +54,8 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
 
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const userName = input.myName || user.email?.split("@")[0] || "";
-    const title = `${today}_${userName}_배당 시뮬레이션 결과`;
+    const defaultTitle = `${today}_${userName}_배당 시뮬레이션 결과`;
+    const title = customTitle.trim() || defaultTitle;
 
     const shareId = nanoid(12);
     await createSharedResult({
@@ -49,7 +65,10 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
       input,
       result,
       show_my_info: showMyInfo,
+      show_ai_explanation: showAiExplanation && hasAiExplanation,
+      ai_explanation_text: showAiExplanation && hasAiExplanation ? aiExplanationText : undefined,
     });
+
     setSavedShareId(shareId);
     return shareId;
   };
@@ -58,7 +77,7 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
     if (!user) { requireLogin(); return; }
     setStatus("saving");
     try {
-      await ensureSaved();
+      await ensureSaved(true);
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2500);
     } catch {
@@ -71,13 +90,18 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
     if (!user) { requireLogin(); return; }
     setStatus("saving");
     try {
-      const shareId = await ensureSaved();
+      const shareId = await ensureSaved(true);
       if (!shareId) return;
       const url = `${window.location.origin}/share/${shareId}`;
       try {
         await navigator.clipboard.writeText(url);
       } catch {
-        // fallback: user can manually copy from mypage
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
       }
       setStatus("copied");
       setTimeout(() => setStatus("idle"), 2500);
@@ -90,23 +114,55 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
   const isBusy = status === "saving";
 
   const primaryBtn =
-    "inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-medium transition-colors disabled:opacity-50 cursor-pointer";
+    "inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 cursor-pointer";
 
   return (
     <div className="relative">
-      {/* 내 정보 표시 토글 */}
-      <label className="mb-3 flex items-center gap-2 cursor-pointer">
+      {/* 제목 입력 */}
+      <div className="mb-3">
         <input
-          type="checkbox"
-          checked={showMyInfo}
+          type="text"
+          value={customTitle}
           onChange={(e) => {
-            setShowMyInfo(e.target.checked);
+            setCustomTitle(e.target.value);
             setSavedShareId(null);
           }}
-          className="h-4 w-4 rounded border-card-border text-accent accent-accent cursor-pointer"
+          maxLength={20}
+          aria-label="시뮬레이션 결과 제목"
+          placeholder="제목 입력 (미입력 시 자동 생성, 20자 이내)"
+          className="w-full rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent/50 transition-colors"
         />
-        <span className="text-sm text-sub-text">공유 시 내 정보 (이름, 배당액) 표시</span>
-      </label>
+      </div>
+
+      {/* 공유 옵션 토글 */}
+      <div className="mb-3 flex flex-col gap-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMyInfo}
+            onChange={(e) => {
+              setShowMyInfo(e.target.checked);
+              setSavedShareId(null);
+            }}
+            className="h-4 w-4 rounded border-card-border text-accent accent-accent cursor-pointer"
+          />
+          <span className="text-sm text-sub-text">공유 시 내 정보 (이름, 배당액) 표시</span>
+        </label>
+        {hasAiExplanation && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAiExplanation}
+              onChange={(e) => {
+                setShowAiExplanation(e.target.checked);
+                setSavedShareId(null);
+              }}
+              className="h-4 w-4 rounded border-card-border text-accent accent-accent cursor-pointer"
+            />
+            <span className="text-sm text-sub-text">공유 시 AI 해설 포함</span>
+          </label>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-2">
         {/* 저장하기 */}
@@ -130,7 +186,7 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              {isBusy ? "저장 중..." : "마이페이지에 저장"}
+              {isBusy ? "저장 중..." : "마이페이지 저장"}
             </>
           )}
         </button>
@@ -166,7 +222,7 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
 
       {/* Login hint */}
       {showLoginHint && (
-        <div className="absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-card-border bg-card-bg p-3 shadow-lg">
+        <div role="alert" className="absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-card-border bg-card-bg p-3 shadow-lg">
           <p className="text-xs text-sub-text">
             로그인 후 이용할 수 있습니다.{" "}
             <a href="/login?redirect=/simulate/result" className="text-accent underline underline-offset-2">
@@ -178,7 +234,7 @@ export const ResultActions = ({ input, result }: IResultActionsProps) => {
 
       {/* Error */}
       {status === "error" && (
-        <div className="absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-card-border bg-card-bg p-3 shadow-lg">
+        <div role="alert" className="absolute right-0 top-full z-10 mt-2 w-56 rounded-xl border border-card-border bg-card-bg p-3 shadow-lg">
           <p className="text-xs text-error">오류가 발생했습니다. 다시 시도해주세요.</p>
         </div>
       )}

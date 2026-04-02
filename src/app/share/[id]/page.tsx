@@ -7,6 +7,7 @@ import { downloadSimulationResultExcel } from "@/lib/excel/generator";
 
 import {
   AssumptionsPanel,
+  CoachMarkBubble,
   DistributionTable,
   Hero,
   Legend,
@@ -22,6 +23,9 @@ export default function SharePage() {
   const params = useParams<{ id: string }>();
   const [state, setState] = useState<PageState>("loading");
   const [shared, setShared] = useState<ISharedResult | null>(null);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -30,6 +34,10 @@ export default function SharePage() {
         if (data) {
           setShared(data);
           setState("found");
+
+          if (data.show_ai_explanation && data.ai_explanation_text) {
+            setAiExplanation(data.ai_explanation_text);
+          }
         } else {
           setState("not-found");
         }
@@ -39,6 +47,25 @@ export default function SharePage() {
     };
     load();
   }, [params.id]);
+
+  const handleSaveImage = useCallback(async () => {
+    if (!captureRef.current || isCapturing) return;
+    setIsCapturing(true);
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(captureRef.current, {
+        pixelRatio: 2,
+        style: { padding: "16px" },
+        skipFonts: true,
+      });
+      const link = document.createElement("a");
+      link.download = `${shared?.title || "배당시뮬레이션"}_${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = dataUrl;
+      link.click();
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [isCapturing, shared?.title]);
 
   if (state === "loading") {
     return (
@@ -86,27 +113,6 @@ export default function SharePage() {
   const displayRows = showMyInfo
     ? result.rows
     : result.rows.map((row) => row.isMyTenant ? { ...row, isMyTenant: false, creditorName: "임차인" } : row);
-
-  const captureRef = useRef<HTMLDivElement>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
-
-  const handleSaveImage = useCallback(async () => {
-    if (!captureRef.current || isCapturing) return;
-    setIsCapturing(true);
-    try {
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(captureRef.current, {
-        pixelRatio: 2,
-        style: { padding: "16px" },
-      });
-      const link = document.createElement("a");
-      link.download = `${title || "배당시뮬레이션"}_${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = dataUrl;
-      link.click();
-    } finally {
-      setIsCapturing(false);
-    }
-  }, [isCapturing, title]);
 
   const secondaryBtn =
     "inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-card-border px-3 text-sm text-sub-text transition-colors hover:border-accent hover:text-accent cursor-pointer";
@@ -179,6 +185,14 @@ export default function SharePage() {
           executionCost={input.executionCost}
           remainingBalance={remainingBalance}
         />
+
+        {aiExplanation && (
+          <CoachMarkBubble
+            content={aiExplanation}
+            isStreaming={false}
+            isPersisted
+          />
+        )}
 
         <Legend showMyTenant={resultView.highlightMyTenant} />
         <ResultDisclaimer />

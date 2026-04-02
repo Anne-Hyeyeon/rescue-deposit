@@ -10,6 +10,8 @@ import { useSimulationData } from "@/app/mypage/hooks/useSimulationData";
 import { useSharedResults } from "@/app/mypage/hooks/useSharedResults";
 import { SimDataCard } from "@/app/mypage/components/SimDataCard";
 import { SharedResultCard } from "@/app/mypage/components/SharedResultCard";
+import { AiExplanationCard } from "@/app/mypage/components/AiExplanationCard";
+import { useAiExplanations } from "@/app/mypage/hooks/useAiExplanations";
 
 export default function MyPage() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function MyPage() {
   const nick = useNickname(user);
   const simData = useSimulationData(user);
   const sharedResults = useSharedResults(user);
+  const aiExplanations = useAiExplanations(user);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login?redirect=/mypage");
@@ -254,6 +257,50 @@ export default function MyPage() {
           ) : (
             <p className="text-sm text-sub-text py-4">
               공유한 결과지가 없습니다. 배당 시뮬레이션 결과 페이지에서 공유 버튼을 눌러보세요.
+            </p>
+          )}
+        </section>
+
+        {/* AI 해설 신청 내역 */}
+        <section className="py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-semibold text-muted uppercase tracking-widest">
+              AI 해설 신청 내역
+            </h2>
+            {!aiExplanations.isLoading && (
+              <span className="text-xs text-accent font-medium">
+                잔여 크레딧 {aiExplanations.remainingCredits}/{aiExplanations.totalCredits}
+              </span>
+            )}
+          </div>
+
+          {aiExplanations.isLoading ? (
+            <div className="flex items-center gap-2 py-6 text-sm text-sub-text">
+              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-20" />
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              불러오는 중...
+            </div>
+          ) : aiExplanations.explanations.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {aiExplanations.explanations.map((item) => {
+                // 해설이 포함된 공유 링크 찾기
+                const linkedShare = sharedResults.dataList.find(
+                  (s) => s.ai_explanation_text && s.ai_explanation_text.slice(0, 50) === item.explanation.slice(0, 50),
+                );
+                return (
+                  <AiExplanationCard
+                    key={item.id}
+                    explanation={item}
+                    shareId={linkedShare?.share_id ?? item.share_id}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-sub-text py-4">
+              아직 AI 해설을 신청한 내역이 없습니다. 배당 시뮬레이션 결과에서 AI 해설 버튼을 눌러보세요.
             </p>
           )}
         </section>

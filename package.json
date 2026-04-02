@@ -10,10 +10,15 @@
     "test": "jest --watchman=false"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.64",
+    "@next/swc-darwin-arm64": "^16.1.6",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
+    "@tailwindcss/oxide-darwin-arm64": "^4.2.2",
+    "ai": "^6.0.143",
     "date-fns": "^4.1.0",
     "html-to-image": "^1.11.13",
+    "lightningcss-darwin-arm64": "^1.32.0",
     "nanoid": "^5.1.7",
     "next": "16.1.6",
     "react": "19.2.3",

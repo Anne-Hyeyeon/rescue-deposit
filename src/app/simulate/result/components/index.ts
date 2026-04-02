@@ -9,3 +9,6 @@ export { Legend } from "./Legend";
 export { ActionLinksPanel } from "./ActionLinksPanel";
 export { ResultDisclaimer } from "./ResultDisclaimer";
 export { ResultActions } from "./ShareButton";
+export { AiExplanationButton } from "./AiExplanationButton";
+export { CoachMarkBubble } from "./CoachMarkBubble";
+export { QuestionnaireModal } from "./QuestionnaireModal";

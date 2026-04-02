@@ -7,16 +7,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ActionLinksPanel,
+  AiExplanationButton,
   AssumptionsPanel,
+  CoachMarkBubble,
   DistributionTable,
   Hero,
   Legend,
+  QuestionnaireModal,
   ResultDisclaimer,
   RiskPanel,
   SalePriceAdjuster,
   ResultActions,
 } from "@/app/simulate/result/components";
-import { BMC_URL } from "@/components/Footer";
+import { useAiEligibility } from "@/app/simulate/result/hooks/useAiEligibility";
+import { useAiExplanation } from "@/app/simulate/result/hooks/useAiExplanation";
+import { useAiCredits } from "@/app/simulate/result/hooks/useAiCredits";
 import {
   buildResultViewModel,
   canAccessSimulationResult,
@@ -49,6 +54,74 @@ export default function SimulateResultPage() {
   const captureRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
 
+  // AI 해설 기능
+  const { isEligible, markEligible } = useAiEligibility();
+  const credits = useAiCredits();
+  const {
+    content,
+    fullText,
+    isStreaming,
+    isTyping,
+    isPersisted,
+    isDemo,
+    error: aiError,
+    trigger,
+    loadSaved,
+    explanationId,
+  } = useAiExplanation();
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  // 마운트 시 저장된 해설 로드
+  useEffect(() => {
+    if (hasInput && input) {
+      loadSaved(input).then((saved) => {
+        if (saved) setShowExplanation(true);
+      });
+    }
+  }, [hasInput]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAiExplanation = useCallback(() => {
+    if (!result) return;
+
+    // 이미 저장된 해설이 있으면 표시만
+    if (isPersisted && fullText) {
+      setShowExplanation(true);
+      return;
+    }
+
+    // 데모 케이스는 설문 불필요
+    if (isDemo) {
+      setShowExplanation(true);
+      trigger(input, result, credits.remaining);
+      return;
+    }
+
+    if (!isEligible) {
+      setShowQuestionnaire(true);
+      return;
+    }
+
+    // 크레딧 차감 확인
+    const confirmed = window.confirm(
+      `무료 AI 해설 1회가 차감됩니다.\n(잔여: ${credits.remaining}회)\n\n입력하신 정보가 정확한지 확인해주세요.\n잘못된 정보로 생성된 해설은 복구되지 않습니다.\n\n진행하시겠습니까?`,
+    );
+    if (!confirmed) return;
+
+    setShowExplanation(true);
+    trigger(input, result, credits.remaining);
+  }, [isEligible, isPersisted, isDemo, fullText, input, result, trigger, credits.remaining, credits.total]);
+
+  const handleQuestionnaireComplete = useCallback(() => {
+    markEligible();
+    setShowQuestionnaire(false);
+    if (result) {
+      setShowExplanation(true);
+      trigger(input, result, credits.remaining);
+      credits.decrement();
+    }
+  }, [markEligible, input, result, trigger, credits]);
+
   const handleSaveImage = useCallback(async () => {
     if (!captureRef.current || isCapturing) return;
     setIsCapturing(true);
@@ -57,6 +130,7 @@ export default function SimulateResultPage() {
       const dataUrl = await toPng(captureRef.current, {
         pixelRatio: 2,
         style: { padding: "16px" },
+        skipFonts: true,
       });
 
       const link = document.createElement("a");
@@ -123,7 +197,36 @@ export default function SimulateResultPage() {
           remainingBalance={remainingBalance}
         />
 
+        {/* AI 해설 */}
+        {showExplanation && fullText && (
+          <CoachMarkBubble
+            content={fullText}
+            isStreaming={isStreaming || isTyping}
+            isPersisted={isPersisted}
+            isDemo={isDemo}
+          />
+        )}
+
         <Legend showMyTenant={resultView.highlightMyTenant} />
+
+        {/* AI 해설 버튼 */}
+        {hasResult && (
+          <div className="flex flex-col gap-2">
+            <AiExplanationButton
+              onClick={handleAiExplanation}
+              isStreaming={isStreaming || isTyping}
+              hasExplanation={isPersisted && !!fullText}
+              remainingCredits={credits.remaining}
+              totalCredits={credits.total}
+              isDemo={isDemo}
+              creditsLoading={credits.isLoading}
+            />
+            {aiError && (
+              <p className="text-sm text-error">{aiError}</p>
+            )}
+          </div>
+        )}
+
         {/* <ActionLinksPanel /> */}
         <ResultDisclaimer />
       </div>
@@ -135,12 +238,17 @@ export default function SimulateResultPage() {
             결과 활용하기
           </p>
           {/* 저장 / 공유 */}
-          <ResultActions input={input} result={result} />
+          <ResultActions
+            input={input}
+            result={result}
+            hasAiExplanation={isPersisted && !!fullText}
+            aiExplanationText={fullText || undefined}
+          />
           {/* 다운로드 */}
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => downloadSimulationResultExcel(input, result)}
+              onClick={() => downloadSimulationResultExcel(input, result, undefined, fullText || undefined)}
               className={secondaryBtn}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -167,25 +275,12 @@ export default function SimulateResultPage() {
         </div>
       )}
 
-      {hasResult && (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-card-border bg-card-bg p-6">
-          <p className="text-sm text-sub-text text-center">
-            도움이 되셨다면, 커피 한 잔의 응원이 큰 힘이 됩니다.
-          </p>
-          <a
-            href={BMC_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/bmc-button.png"
-              alt="Buy me a coffee"
-              width={180}
-              height={50}
-              className="rounded-lg hover:opacity-80 transition-opacity duration-200"
-            />
-          </a>
-        </div>
+      {/* 설문 모달 */}
+      {showQuestionnaire && (
+        <QuestionnaireModal
+          onComplete={handleQuestionnaireComplete}
+          onClose={() => setShowQuestionnaire(false)}
+        />
       )}
     </div>
   );

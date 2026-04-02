@@ -303,13 +303,25 @@ const appendSimulationResultSheet = (
   ]);
 };
 
+const appendAiExplanationSheet = (
+  wb: XLSX.WorkBook,
+  explanation: string,
+) => {
+  const lines = explanation.split("\n").map((line) => [line]);
+  const ws = XLSX.utils.aoa_to_sheet([["AI 배당표 해설"], [], ...lines]);
+  ws["!cols"] = [{ wch: 100 }];
+  XLSX.utils.book_append_sheet(wb, ws, "AI 해설");
+};
+
 export const buildSimulationResultWorkbook = (
   input: ISimulationInput,
   result: ISimulationResult,
+  aiExplanation?: string,
 ): XLSX.WorkBook => {
   const wb = XLSX.utils.book_new();
   appendSimulationInputSheets(wb, input);
   appendSimulationResultSheet(wb, result);
+  if (aiExplanation) appendAiExplanationSheet(wb, aiExplanation);
   return wb;
 };
 
@@ -324,9 +336,10 @@ export const downloadSimulationExcel = (
 export const downloadSimulationResultExcel = (
   input: ISimulationInput,
   result: ISimulationResult,
-  filename = "배당시뮬레이션_결과"
+  filename = "배당시뮬레이션_결과",
+  aiExplanation?: string,
 ) => {
-  const wb = buildSimulationResultWorkbook(input, result);
+  const wb = buildSimulationResultWorkbook(input, result, aiExplanation);
   XLSX.writeFile(wb, `${filename}.xlsx`);
 };
 

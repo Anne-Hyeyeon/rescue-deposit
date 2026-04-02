@@ -14,9 +14,46 @@ const notoSansKR = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "절대지켜",
-  description: "다가구 피해자가 직접 만든 보증금 정보 플랫폼",
+  title: "절대지켜 - 다가구 전세사기 배당금 계산기 | 배당 시뮬레이터",
+  description:
+    "전세사기 피해자가 직접 만든 경매 배당 시뮬레이터. 상대적 소액임차인 개념을 반영해 내 보증금 회수 금액을 계산해 보세요.",
   manifest: "/manifest.json",
+  keywords: [
+    "다가구",
+    "다가구 전세사기",
+    "전세사기",
+    "전세사기 피해자",
+    "배당금",
+    "배당금 계산기",
+    "배당 계산기",
+    "배당 시뮬레이터",
+    "전세사기 배당금 계산기",
+    "경매 배당",
+    "소액임차인",
+    "상대적 소액임차인",
+    "최우선변제금",
+    "소액임차인 최우선변제금",
+    "확정일자 임차인",
+    "보증금 미반환",
+    "보증금 반환",
+    "임차인 배당",
+    "경매 배당표",
+    "배당 순서",
+  ],
+  openGraph: {
+    title: "절대지켜 - 다가구 전세사기 배당금 계산기",
+    description:
+      "다가구 전세사기 피해자가 직접 만든 사이트입니다. 경매 배당 시뮬레이터로 내 보증금이 얼마나 돌아올 수 있는지 계산해 보세요.",
+    siteName: "절대지켜",
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "절대지켜 - 다가구 전세사기 배당금 계산기",
+    description:
+      "다가구 전세사기 피해자가 직접 만든 사이트입니다. 경매 배당 시뮬레이터로 내 보증금 회수율을 확인하세요.",
+  },
 };
 
 export const viewport: Viewport = {
@@ -46,9 +83,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <Header />
-            <main className="flex-1">
-              {children}
-            </main>
+            <main className="flex-1">{children}</main>
             <Footer />
           </AuthProvider>
         </ThemeProvider>
