@@ -8,4 +8,7 @@ export {
   ActionLinksPanel,
   ResultDisclaimer,
   ResultActions,
+  AiExplanationButton,
+  CoachMarkBubble,
+  QuestionnaireModal,
 } from "./components/index";

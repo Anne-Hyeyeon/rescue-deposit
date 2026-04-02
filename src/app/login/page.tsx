@@ -62,7 +62,15 @@ function LoginContent() {
         ))}
       </div>
 
-      <p className="text-xs text-muted mt-10 text-center leading-relaxed">
+      <div className="w-full max-w-xs mt-6 px-4 py-3 rounded-lg bg-amber-500/8 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400 leading-relaxed text-center">
+        카카오톡, 링크드인 등으로 접속한 경우
+        <br />
+        내장 브라우저에서는 로그인이 되지 않습니다.
+        <br />
+        <span className="font-medium">Safari, Chrome 등 외부 브라우저</span>를 이용해 주세요.
+      </div>
+
+      <p className="text-xs text-muted mt-8 text-center leading-relaxed">
         로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.
       </p>
     </div>

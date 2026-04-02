@@ -32,6 +32,7 @@ export const OtherTenantRow = ({
           value={tenant.name}
           onChange={(event) => onChange({ ...tenant, name: event.target.value })}
           placeholder="홍길동"
+          maxLength={20}
           disabled={tenant.name === "모름"}
         />
         <label className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap">

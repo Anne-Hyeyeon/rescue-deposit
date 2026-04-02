@@ -7,6 +7,11 @@ const services = [
     description: "예상 배당금을 직접 계산해보세요",
   },
   {
+    href: "/guide",
+    title: "이용 가이드",
+    description: "사용 방법을 단계별로 안내합니다",
+  },
+  {
     href: "/mypage",
     title: "마이페이지",
     description: "저장한 배당표와 내 활동",
@@ -32,6 +37,14 @@ const Home = () => {
           <p className="text-xs text-muted mb-4">
             현재는 &lsquo;배당 시뮬레이터&rsquo;만 베타 테스트로 운영 중입니다.
           </p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-foreground/5 border border-card-border text-xs text-muted w-fit">
+            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <path d="M8 21h8" />
+              <path d="M12 17v4" />
+            </svg>
+            PC 버전 사용을 권장합니다
+          </div>
           {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-badge-bg border border-card-border text-xs text-sub-text w-fit">
             <svg
               className="w-3.5 h-3.5 shrink-0"

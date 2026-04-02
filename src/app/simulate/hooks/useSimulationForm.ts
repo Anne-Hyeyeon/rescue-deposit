@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, type FormEvent } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { useSimulationStore } from "@/store/simulationStore";
@@ -214,6 +214,7 @@ export const useSimulationForm = () => {
     setInput(updatedInput);
     const result = runSimulation(updatedInput);
     setResult(result);
+    isIntentionalNav.current = true;
     router.push("/simulate/result");
   };
 
@@ -238,10 +239,13 @@ export const useSimulationForm = () => {
     input.mortgageMaxClaim > 0 ||
     input.salePrice !== defaultSimulationInput.salePrice;
 
-  // 브라우저 탭 닫기 / 새로고침 경고
+  const isIntentionalNav = useRef(false);
+
+  // 브라우저 탭 닫기 / 새로고침 경고 (의도적 이동 시 제외)
   useEffect(() => {
     if (!hasUnsavedInput) return;
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isIntentionalNav.current) return;
       e.preventDefault();
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
