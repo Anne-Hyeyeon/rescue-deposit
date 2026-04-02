@@ -182,7 +182,7 @@ export default function SimulateResultPage() {
               alt="Buy me a coffee"
               width={180}
               height={50}
-              className="rounded-lg hover:opacity-80 transition-opacity duration-200"
+              className="rounded-lg dark:invert hover:opacity-80 transition-opacity duration-200"
             />
           </a>
         </div>

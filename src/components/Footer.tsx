@@ -13,17 +13,13 @@ export function Footer() {
           문의 · dlswptkfkd@gmail.com
         </p>
         <div className="mt-5">
-          <a
-            href={BMC_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={BMC_URL} target="_blank" rel="noopener noreferrer">
             <Image
               src="/bmc-full-logo.png"
               alt="Buy me a coffee"
               width={150}
               height={40}
-              className="hover:opacity-80 transition-opacity duration-200"
+              className=" dark:invert hover:opacity-80 transition-opacity duration-200"
             />
           </a>
         </div>
