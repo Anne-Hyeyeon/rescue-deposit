@@ -33,7 +33,9 @@ function LoginContent() {
       provider: provider as SupabaseProvider,
       options: {
         redirectTo: callbackUrl,
-        scopes: undefined,
+        queryParams: {
+          prompt: "select_account",
+        },
       },
     });
   };
