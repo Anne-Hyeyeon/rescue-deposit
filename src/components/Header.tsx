@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const PUBLIC_NAV = [
   { href: "/simulate", label: "배당 시뮬레이터" },
+  { href: "/guide", label: "이용 가이드" },
 ] as const;
 
 const AUTH_NAV = [

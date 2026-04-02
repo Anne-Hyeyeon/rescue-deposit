@@ -7,6 +7,11 @@ const services = [
     description: "예상 배당금을 직접 계산해보세요",
   },
   {
+    href: "/guide",
+    title: "이용 가이드",
+    description: "사용 방법을 단계별로 안내합니다",
+  },
+  {
     href: "/mypage",
     title: "마이페이지",
     description: "저장한 배당표와 내 활동",
