@@ -110,7 +110,7 @@ export const SalePriceAdjuster = ({
               {formatResultAmountShort(appraisalValue)}
             </span>
           </p>
-          <div className="flex justify-center gap-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:flex sm:justify-center sm:gap-2">
             {RATE_BUTTONS.map((rate) => {
               const target = Math.round((appraisalValue * rate) / 100);
               const isActive = salePrice === target;
@@ -120,7 +120,7 @@ export const SalePriceAdjuster = ({
                   key={rate}
                   type="button"
                   onClick={() => onChange(target)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`rounded-lg px-2 py-1.5 text-xs font-medium transition-all sm:px-3 ${
                     isActive
                       ? "bg-accent-solid text-white"
                       : "border border-card-border bg-background text-sub-text hover:bg-hover-bg hover:text-foreground"

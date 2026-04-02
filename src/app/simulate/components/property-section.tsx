@@ -105,6 +105,7 @@ export const PropertySection = ({
             value={input.mortgageName}
             onChange={(event) => onInputChange({ mortgageName: event.target.value })}
             placeholder="예: ○○은행"
+            maxLength={30}
             disabled={input.mortgageName === "선순위 근저당"}
             className="w-full rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm text-foreground transition-colors duration-150 placeholder:text-sub-text/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50"
           />

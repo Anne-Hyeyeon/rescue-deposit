@@ -9,6 +9,8 @@ export interface ISharedResult {
   input: ISimulationInput;
   result: ISimulationResult;
   show_my_info: boolean;
+  show_ai_explanation?: boolean;
+  ai_explanation_text?: string;
   created_at: string;
 }
 
@@ -19,11 +21,20 @@ export async function createSharedResult(fields: {
   input: ISimulationInput;
   result: ISimulationResult;
   show_my_info: boolean;
+  show_ai_explanation?: boolean;
+  ai_explanation_text?: string;
 }): Promise<ISharedResult> {
   const supabase = createClient();
+
+  // DB에 없을 수 있는 컬럼 분리
+  const { show_ai_explanation, ai_explanation_text, ...coreFields } = fields;
+  const insertData: Record<string, unknown> = { ...coreFields };
+  if (show_ai_explanation !== undefined) insertData.show_ai_explanation = show_ai_explanation;
+  if (ai_explanation_text) insertData.ai_explanation_text = ai_explanation_text;
+
   const { data, error } = await supabase
     .from("shared_results")
-    .insert(fields)
+    .insert(insertData)
     .select()
     .single();
 

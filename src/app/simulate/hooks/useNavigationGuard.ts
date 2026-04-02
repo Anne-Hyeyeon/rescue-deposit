@@ -13,11 +13,14 @@ export const useNavigationGuard = (shouldBlock: boolean) => {
       const href = anchor.getAttribute("href");
       if (!href || href.startsWith("#") || href.startsWith("javascript")) return;
 
-      // 외부 링크는 beforeunload가 처리
       if (anchor.target === "_blank") return;
 
-      // 같은 페이지 내 앵커는 무시
-      if (href.startsWith("/simulate") && !href.includes("/result")) return;
+      // 다운로드 링크 (엑셀 저장 등)는 페이지 이탈이 아님
+      if (anchor.hasAttribute("download")) return;
+      if (href.startsWith("blob:") || href.startsWith("data:")) return;
+
+      // /simulate 내부 이동 허용 (결과 페이지 포함)
+      if (href.startsWith("/simulate")) return;
 
       const confirmed = window.confirm(
         "지금 나가면 입력한 내용이 사라집니다.\n계속 이동하시겠습니까?"
